@@ -1,6 +1,11 @@
-venv/
+﻿venv/
 __pycache__/
 .env
 *.pyc
-.DS_Store
 *.log
+.DS_Store
+.pytest_cache/
+data/chroma_db/
+data/test_chroma_db/
+test_bed/shopflow.db
+opsmind_sandbox_test_*
