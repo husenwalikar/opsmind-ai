@@ -13,3 +13,7 @@ A day-by-day technical log documenting the design decisions, implementation hurd
 - Surveyed foundational papers on log parsing (Drain, LogRobust), cloud RCA (RCACopilot, LLMtriage), and autonomous code generation (SWE-agent, InterCode).
 - Synthesized findings into `docs/literature_survey.md`. Key takeaway from SWE-agent: LLMs fail on raw unified diffs; constraining output to structured `SEARCH`/`REPLACE` blocks drastically improves patch accuracy.
 - Established strict security baseline: created `.env.example` template and updated `.gitignore` to prevent leaking provider credentials or vector store binaries.
+
+## 2026-08-12 (Day 3) — Dataset Ingestion & Prototype Cleanup
+- Downloaded and ingested the `Linux_2k.log` benchmark dataset from Loghub into `data/` for offline anomaly pattern evaluation.
+- Retired the exploratory Day 1 spike script (`test_brain.py`) in preparation for building a modular, production-grade pipeline.
