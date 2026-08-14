@@ -17,3 +17,9 @@ A day-by-day technical log documenting the design decisions, implementation hurd
 ## 2026-08-12 (Day 3) — Dataset Ingestion & Prototype Cleanup
 - Downloaded and ingested the `Linux_2k.log` benchmark dataset from Loghub into `data/` for offline anomaly pattern evaluation.
 - Retired the exploratory Day 1 spike script (`test_brain.py`) in preparation for building a modular, production-grade pipeline.
+
+## 2026-08-14 (Day 4) — Patient Microservice Scaffolding ("ShopFlow")
+- Architected the standalone target microservice: **ShopFlow** (`test_bed/`), representing a realistic multi-tier e-commerce backend.
+- Implemented modular domain services: `billing.py`, `checkout.py`, `gateway.py`, `inventory.py`, `promotions.py`, and `auth.py`.
+- Added resilient database layer (`database.py`) with automatic SQLite fallback if a PostgreSQL container is unavailable locally.
+- Integrated structured JSON logging via `logger.py` to emulate production cloud observability streams.
