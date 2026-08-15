@@ -23,3 +23,7 @@ A day-by-day technical log documenting the design decisions, implementation hurd
 - Implemented modular domain services: `billing.py`, `checkout.py`, `gateway.py`, `inventory.py`, `promotions.py`, and `auth.py`.
 - Added resilient database layer (`database.py`) with automatic SQLite fallback if a PostgreSQL container is unavailable locally.
 - Integrated structured JSON logging via `logger.py` to emulate production cloud observability streams.
+
+## 2026-08-15 (Day 5) — Operational Runbooks & Service Invariants
+- Authored ground-truth operational documentation in `test_bed/docs/SERVICE_RUNBOOK.md`.
+- Defined clear mathematical and business invariants for each subsystem (e.g. billing ratio handling on 100% discount vouchers, tier overflow clamping in inventory allocation).
