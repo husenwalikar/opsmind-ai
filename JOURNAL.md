@@ -27,3 +27,13 @@ A day-by-day technical log documenting the design decisions, implementation hurd
 ## 2026-08-15 (Day 5) — Operational Runbooks & Service Invariants
 - Authored ground-truth operational documentation in `test_bed/docs/SERVICE_RUNBOOK.md`.
 - Defined clear mathematical and business invariants for each subsystem (e.g. billing ratio handling on 100% discount vouchers, tier overflow clamping in inventory allocation).
+
+## 2026-08-17 (Day 6) — Fault Injection Test Suite
+- Constructed 6 deterministic reproducing test fixtures in `test_bed/tests/` modeling realistic microservice failure modes:
+  1. `ZeroDivisionError` in billing calculation during 100% coupon markdown.
+  2. `KeyError` in guest checkout when optional metadata payload is omitted.
+  3. `IndexError` in fulfillment routing when tier index exceeds facility list size.
+  4. `ValueError` when marketing promotion rate is configured as negative.
+  5. `TimeoutError` when upstream card settlement network hangs.
+  6. `TokenExpiredError` when customer session JWT timestamp exceeds expiry window.
+- Verified all 6 test cases fail cleanly under faulty conditions.
