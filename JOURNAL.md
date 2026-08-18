@@ -37,3 +37,7 @@ A day-by-day technical log documenting the design decisions, implementation hurd
   5. `TimeoutError` when upstream card settlement network hangs.
   6. `TokenExpiredError` when customer session JWT timestamp exceeds expiry window.
 - Verified all 6 test cases fail cleanly under faulty conditions.
+
+## 2026-08-18 (Day 7) — Interactive Storefront & DevOps Operator Panel
+- Built single-page responsive storefront in `test_bed/app/static/index.html`.
+- Implemented collapsible **DevOps ⚙** control panel enabling one-click live fault injection directly from the browser for visual demonstrations.
