@@ -41,3 +41,8 @@ A day-by-day technical log documenting the design decisions, implementation hurd
 ## 2026-08-18 (Day 7) — Interactive Storefront & DevOps Operator Panel
 - Built single-page responsive storefront in `test_bed/app/static/index.html`.
 - Implemented collapsible **DevOps ⚙** control panel enabling one-click live fault injection directly from the browser for visual demonstrations.
+
+## 2026-08-20 (Day 8) — Stage 1: Traceback Parser & Frame Filtering
+- Implemented `services/agent/parser.py` using bottom-up exception scanning.
+- Designed regex-based stack frame extraction that discards standard library, virtual environment, and ASGI framework frames (`uvicorn`, `starlette`).
+- Isolated innermost application frame with bounded 10-line source window with pointer indicator (`>>`).
