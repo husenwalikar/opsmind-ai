@@ -46,3 +46,8 @@ A day-by-day technical log documenting the design decisions, implementation hurd
 - Implemented `services/agent/parser.py` using bottom-up exception scanning.
 - Designed regex-based stack frame extraction that discards standard library, virtual environment, and ASGI framework frames (`uvicorn`, `starlette`).
 - Isolated innermost application frame with bounded 10-line source window with pointer indicator (`>>`).
+
+## 2026-08-21 (Day 9) — Parser Hardening & Unit Test Harness
+- Hardened `parser.py` against path traversal attacks: enforced `os.path.commonpath` checks to block malicious tracebacks attempting to access arbitrary host files (e.g. `/etc/passwd`).
+- Implemented chained exception unwinding (`raise ... from ...`) to isolate the root cause rather than outer wrapper frames.
+- Created `test_parser.py` with 7 comprehensive unit tests (all passing).
