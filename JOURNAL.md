@@ -51,3 +51,7 @@ A day-by-day technical log documenting the design decisions, implementation hurd
 - Hardened `parser.py` against path traversal attacks: enforced `os.path.commonpath` checks to block malicious tracebacks attempting to access arbitrary host files (e.g. `/etc/passwd`).
 - Implemented chained exception unwinding (`raise ... from ...`) to isolate the root cause rather than outer wrapper frames.
 - Created `test_parser.py` with 7 comprehensive unit tests (all passing).
+
+## 2026-08-24 (Day 10) — Stage 2: ChromaDB Vector Store & Incident Seeding
+- Implemented `data/seed_chroma.py` with local ONNX embeddings (`all-MiniLM-L6-v2`) eliminating external API dependency for embeddings.
+- Structured and seeded `data/historical_incidents.json` containing 6 historical incident post-mortems and 6 service runbook invariants.
