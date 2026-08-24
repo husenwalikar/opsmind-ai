@@ -1,0 +1,50 @@
+[
+  {
+    "incident_id": "INC-2024-041",
+    "service_context": "Legacy Subscription Engine (LegacySubApp)",
+    "error_type": "ZeroDivisionError",
+    "signature": "ZeroDivisionError: division by zero",
+    "abstract_root_cause": "Calculation attempted to divide by a variable that evaluated to zero during full 100% discount calculations.",
+    "remediation_pattern": "Inspect the denominator before performing division. Add a guard clause checking if denominator == 0 and return a safe fallback value of 0.0."
+  },
+  {
+    "incident_id": "INC-2024-088",
+    "service_context": "User Account Service (LegacyAccounts)",
+    "error_type": "KeyError",
+    "signature": "KeyError: missing key in dictionary lookup",
+    "abstract_root_cause": "Application attempted direct bracket access on an optional key in a JSON dictionary payload that was not provided.",
+    "remediation_pattern": "Replace direct bracket access dict[key] with the defensive dict.get(key, default_fallback) method."
+  },
+  {
+    "incident_id": "INC-2024-119",
+    "service_context": "Warehouse Batch Service (LegacyLogistics)",
+    "error_type": "IndexError",
+    "signature": "IndexError: list index out of range",
+    "abstract_root_cause": "Requested partition index exceeded the boundary length of the array.",
+    "remediation_pattern": "Clamp the target index to the maximum permissible index using min(requested_index, len(array) - 1) before lookup."
+  },
+  {
+    "incident_id": "INC-2024-152",
+    "service_context": "OAuth Token Service (LegacyAuthGate)",
+    "error_type": "TypeError",
+    "signature": "TypeError: 'NoneType' object is not subscriptable",
+    "abstract_root_cause": "Function attempted to index a dictionary or object variable that resolved to None when an invalid session was passed.",
+    "remediation_pattern": "Insert a null check verifying that the object is not None before accessing its fields or attributes."
+  },
+  {
+    "incident_id": "INC-2024-190",
+    "service_context": "Pricing Rules Engine (LegacyPricing)",
+    "error_type": "ValueError",
+    "signature": "ValueError: invalid percentage value",
+    "abstract_root_cause": "Input parameter contained a negative number where a positive magnitude was required.",
+    "remediation_pattern": "Add an input boundary validation check ensuring parameter > 0, clamping or returning a validation error."
+  },
+  {
+    "incident_id": "INC-2024-211",
+    "service_context": "Banking Webhook Client (LegacyPay)",
+    "error_type": "TimeoutError",
+    "signature": "TimeoutError: connection timed out during external request",
+    "abstract_root_cause": "External network call hung without timeout boundary or retry handling.",
+    "remediation_pattern": "Wrap external HTTP/network call in a try/except block catching TimeoutError and return a graceful failure response."
+  }
+]
