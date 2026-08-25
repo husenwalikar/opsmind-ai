@@ -55,3 +55,8 @@ A day-by-day technical log documenting the design decisions, implementation hurd
 ## 2026-08-24 (Day 10) — Stage 2: ChromaDB Vector Store & Incident Seeding
 - Implemented `data/seed_chroma.py` with local ONNX embeddings (`all-MiniLM-L6-v2`) eliminating external API dependency for embeddings.
 - Structured and seeded `data/historical_incidents.json` containing 6 historical incident post-mortems and 6 service runbook invariants.
+
+## 2026-08-25 (Day 11) — RAG Distance Gating & Hallucination Suppression
+- Added cosine distance cutoff (`MAX_COSINE_DISTANCE = 0.65`) in `seed_chroma.py`.
+- Queries exceeding distance threshold return `is_confident = False`, preventing irrelevant runbooks from polluting LLM diagnostic prompts.
+- Created `test_chroma.py` validating retrieval precision and distance thresholding (5 tests passing).
