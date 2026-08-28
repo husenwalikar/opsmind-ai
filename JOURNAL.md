@@ -60,3 +60,7 @@ A day-by-day technical log documenting the design decisions, implementation hurd
 - Added cosine distance cutoff (`MAX_COSINE_DISTANCE = 0.65`) in `seed_chroma.py`.
 - Queries exceeding distance threshold return `is_confident = False`, preventing irrelevant runbooks from polluting LLM diagnostic prompts.
 - Created `test_chroma.py` validating retrieval precision and distance thresholding (5 tests passing).
+
+## 2026-08-28 (Day 12) — Stage 3: Groq LPU Diagnostic Client
+- Implemented `services/agent/llm_client.py` integrating Groq high-speed LPU inference with strict JSON schema output (`openai/gpt-oss-120b`).
+- Optimized prompt structure: combined bounded 10-line source context with vector runbook snippet to fit within ~720 tokens per call (comfortably within 6,000 TPM limit).
