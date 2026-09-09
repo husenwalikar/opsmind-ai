@@ -76,3 +76,7 @@ A day-by-day technical log documenting the design decisions, implementation hurd
 - Created `test_llm_client.py` (4 tests) validating JSON formatting, prompt construction, and mock inference.
 - Created `test_patcher.py` (6 tests) verifying clean replacements, multi-match rejections, AST syntax error trapping, and diff output.
 - Verified all 22 OpsMind unit tests pass in under 12 seconds.
+
+## 2026-09-09 (Day 15) — End-to-End Orchestrator Pipeline
+- Built `demo.py`: interactive CLI pipeline orchestrating Stage 1 (parser) -> Stage 2 (vector RAG) -> Stage 3 (Groq LLM) -> Stage 4 (AST patcher).
+- Added Rich terminal formatting with step-by-step progress spinners, color-coded unified diff rendering, and timing metrics.
