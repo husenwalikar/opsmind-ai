@@ -80,3 +80,8 @@ A day-by-day technical log documenting the design decisions, implementation hurd
 ## 2026-09-09 (Day 15) — End-to-End Orchestrator Pipeline
 - Built `demo.py`: interactive CLI pipeline orchestrating Stage 1 (parser) -> Stage 2 (vector RAG) -> Stage 3 (Groq LLM) -> Stage 4 (AST patcher).
 - Added Rich terminal formatting with step-by-step progress spinners, color-coded unified diff rendering, and timing metrics.
+
+## 2026-09-12 (Day 16) — Security Threat Model & Architectural Documentation
+- Authored `docs/SECURITY_MODEL.md` detailing STRIDE threat analysis, AST execution guards, and path boundary enforcement.
+- Authored `docs/ARCHITECTURE.md` documenting the bounded token budget, data contracts, and self-correction feedback loop.
+- Authored `docs/DEMO_GUIDE.md` outlining a 3-act live presentation script.
