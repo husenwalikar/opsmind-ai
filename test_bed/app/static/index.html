@@ -57,7 +57,7 @@
 
     <!-- Actions -->
     <div class="flex items-center gap-3 ml-auto">
-      <button class="hidden sm:flex flex-col items-center text-gray-500 hover:text-blue-600 transition text-xs">
+      <button onclick="openAccountModal()" class="hidden sm:flex flex-col items-center text-gray-500 hover:text-blue-600 transition text-xs">
         <span class="text-lg">👤</span>
         <span>Account</span>
       </button>
@@ -215,11 +215,32 @@
     <div class="flex gap-2">
       <input id="coupon" type="text" placeholder="Promo code (e.g. SAVE10)"
         class="flex-1 border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-      <button class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-medium px-3 rounded-lg transition">Apply</button>
+      <button onclick="applyPromo()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-3.5 rounded-lg transition">Apply</button>
+    </div>
+    <!-- Fulfillment Node (Warehouse Tier) -->
+    <div>
+      <label class="block text-[11px] font-medium text-gray-500 mb-1">Fulfillment Node (Warehouse)</label>
+      <select id="warehouse-tier" class="w-full border rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="0">BLR-FC-NORTH (Standard Hub · Tier 0)</option>
+        <option value="1">BLR-FC-SOUTH (Express Hub · Tier 1)</option>
+        <option value="2">BLR-FC-WEST (Priority Hub · Tier 2)</option>
+        <option value="99">Rural Relay Node (Tier 99 · Out-of-bounds Test)</option>
+      </select>
+    </div>
+    <!-- Payment Method -->
+    <div>
+      <label class="block text-[11px] font-medium text-gray-500 mb-1">Payment Method</label>
+      <select id="payment-method" class="w-full border rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="card">Card / UPI (Instant Settlement)</option>
+        <option value="bank_hang">Direct Bank Settlement (Simulate Gateway Hang)</option>
+      </select>
     </div>
     <!-- Address -->
-    <input id="address" type="text" placeholder="Delivery address (leave blank to test guest checkout fault)"
-      class="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+    <div>
+      <label class="block text-[11px] font-medium text-gray-500 mb-1">Delivery Destination</label>
+      <input id="address" type="text" placeholder="Street Address (leave empty for Guest Checkout test)"
+        class="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+    </div>
     <button onclick="checkout()"
       class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white py-3 rounded-xl text-sm font-semibold transition shadow-sm">
       Place Order →
@@ -429,18 +450,67 @@ function renderCart() {
 function openCart()  { document.getElementById('drawer').classList.replace('translate-x-full','translate-x-0'); document.getElementById('overlay').classList.remove('hidden'); renderCart(); }
 function closeCart() { document.getElementById('drawer').classList.replace('translate-x-0','translate-x-full'); document.getElementById('overlay').classList.add('hidden'); }
 
+// ── Promo Voucher Application ────────────────────────────
+async function applyPromo() {
+  const code = document.getElementById('coupon').value.trim().toUpperCase();
+  if (!code) { slog('WARN: Enter a promo code first', 'text-amber-500'); return; }
+  slog(`POST /api/promotions/apply [Coupon: ${code}]`, 'text-blue-600 font-medium');
+  try {
+    const res = await fetch(`${API}/promotions/apply`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ coupon_code: code, base_amount: 1000 })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      slog(`HTTP 200: Coupon valid — discount rate applied (₹${data.discount})`, 'text-green-600 font-semibold');
+      const disp = document.getElementById('subtotal-display');
+      disp.innerHTML = `${disp.textContent} <span class="text-green-600 font-normal">(-₹${data.discount} coupon)</span>`;
+    } else {
+      slog(`HTTP 500: ${data.error_type} in promotions engine`, 'text-red-500 font-semibold');
+      showError(data);
+    }
+  } catch(e) { slog(`NET_ERR: ${e.message}`, 'text-red-500'); }
+}
+
 // ── Checkout ─────────────────────────────────────────────
 async function checkout() {
   if (!cart.length) { slog('WARN: Cart is empty', 'text-amber-500'); return; }
   const addr = document.getElementById('address').value.trim();
   const code = document.getElementById('coupon').value.trim().toUpperCase() || null;
-  slog(`POST /api/checkout${code ? ` [${code}]` : ''}`, 'text-blue-600 font-medium');
+  const tier = parseInt(document.getElementById('warehouse-tier')?.value || '0', 10);
+  const paymentMethod = document.getElementById('payment-method')?.value || 'card';
+
   closeCart();
+
+  // If user selected bank hang, trigger gateway timeout simulation
+  if (paymentMethod === 'bank_hang') {
+    slog(`POST /api/payment/charge [Simulate Gateway Hang]`, 'text-blue-600 font-medium');
+    try {
+      const res = await fetch(`${API}/payment/charge`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ order_id: 'ORD-TIMEOUT-DEMO', amount: 1200, simulate_network_hang: true })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        slog(`HTTP 500: ${data.error_type} in payment gateway`, 'text-red-500 font-semibold');
+        showError(data);
+      }
+    } catch(e) { slog(`NET_ERR: ${e.message}`, 'text-red-500'); }
+    return;
+  }
+
+  slog(`POST /api/checkout${code ? ` [Coupon: ${code}]` : ''} [Tier: ${tier}]`, 'text-blue-600 font-medium');
   try {
     const res = await fetch(`${API}/checkout`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ coupon_code: code, customer_payload: addr ? {shipping_address: addr} : {}, warehouse_tier: 0 })
+      body: JSON.stringify({
+        coupon_code: code,
+        customer_payload: addr ? {shipping_address: addr} : {},
+        warehouse_tier: tier
+      })
     });
     const data = await res.json();
     if (res.ok) {
@@ -448,6 +518,63 @@ async function checkout() {
       showSuccess(data); cart = []; renderCart();
     } else {
       slog(`HTTP 500: ${data.error_type}`, 'text-red-500 font-semibold');
+      showError(data);
+    }
+  } catch(e) { slog(`NET_ERR: ${e.message}`, 'text-red-500'); }
+}
+
+// ── Account / Session Modal ──────────────────────────────
+function openAccountModal() {
+  document.getElementById('modal-card').innerHTML = `
+    <div class="text-left">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl font-bold border border-blue-100">
+          👤
+        </div>
+        <div>
+          <h2 class="text-base font-bold text-gray-900 leading-snug">Customer Account</h2>
+          <p class="text-xs text-gray-400 font-mono">Account ID: CUST_94821</p>
+        </div>
+      </div>
+      <p class="text-xs text-gray-600 mb-4">
+        Manage customer identity, bearer sessions, and authorization credentials.
+      </p>
+      <div class="p-3 bg-gray-50 border border-gray-100 rounded-xl space-y-1 mb-5 text-xs">
+        <div class="flex justify-between items-center">
+          <span class="text-gray-500 font-medium">Session Token:</span>
+          <span class="font-mono text-gray-700 bg-white px-2 py-0.5 rounded border text-[10px]">EXPIRED_JWT_XYZ</span>
+        </div>
+        <div class="flex justify-between items-center pt-1">
+          <span class="text-gray-500 font-medium">Token State:</span>
+          <span class="text-amber-600 font-semibold text-[10px]">● Expired / Stale</span>
+        </div>
+      </div>
+      <div class="space-y-2">
+        <button onclick="verifySessionAuth()" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white py-2.5 rounded-xl text-xs font-semibold transition shadow-sm">
+          Verify Session Claims (Test Auth)
+        </button>
+        <button onclick="closeModal()" class="w-full border border-gray-200 hover:bg-gray-50 text-gray-600 py-2.5 rounded-xl text-xs font-medium transition">
+          Close
+        </button>
+      </div>
+    </div>`;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+async function verifySessionAuth() {
+  slog('POST /api/auth/verify [Token: EXPIRED_JWT_XYZ]', 'text-blue-600 font-medium');
+  closeModal();
+  try {
+    const res = await fetch(`${API}/auth/verify`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ session_token: 'EXPIRED_JWT_XYZ' })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      slog(`HTTP 200: Session authenticated (${data.role})`, 'text-green-600');
+    } else {
+      slog(`HTTP 500: ${data.error_type} in auth service`, 'text-red-500 font-semibold');
       showError(data);
     }
   } catch(e) { slog(`NET_ERR: ${e.message}`, 'text-red-500'); }
