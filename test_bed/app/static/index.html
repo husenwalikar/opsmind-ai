@@ -3,95 +3,254 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ShopFlow — Official Store</title>
+  <title>ShopFlow — India's Fastest Delivery</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    .gradient-hero { background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 40%, #2563eb 70%, #3b82f6 100%); }
+    .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+    .drawer-open { transform: translateX(0); }
+    .inj-btn { font-size: 11px; font-family: monospace; padding: 5px 10px; border-radius: 6px; border-width: 1px; transition: all 0.15s; cursor: pointer; }
+    .star { color: #f59e0b; }
+    .badge-sale { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .search-bar:focus { outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,0.3); }
+    ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: #f1f5f9; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  </style>
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen">
 
-<!-- Header -->
-<header class="bg-white border-b px-6 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-  <div class="flex items-center gap-3">
-    <span class="font-bold text-xl tracking-tight">ShopFlow</span>
-    <span id="status" class="text-xs px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">● Online</span>
+<!-- Top Announcement Bar -->
+<div class="bg-blue-700 text-white text-center py-1.5 text-xs font-medium tracking-wide">
+  🚀 Free delivery on orders above ₹499 · Use code <strong>SAVE10</strong> for 10% off your first order
+</div>
+
+<!-- Main Header -->
+<header class="bg-white border-b sticky top-0 z-40 shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+    <!-- Logo -->
+    <div class="flex items-center gap-2 flex-shrink-0">
+      <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+        <span class="text-white font-bold text-sm">SF</span>
+      </div>
+      <div>
+        <span class="font-bold text-lg tracking-tight text-gray-900">ShopFlow</span>
+        <div class="flex items-center gap-1.5">
+          <span id="status-dot" class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
+          <span id="status-text" class="text-[10px] text-green-600 font-medium">Online</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="flex-1 max-w-xl hidden sm:block">
+      <div class="relative">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+        <input type="text" placeholder="Search products, brands, categories..."
+          class="search-bar w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:bg-white transition"/>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-3 ml-auto">
+      <button class="hidden sm:flex flex-col items-center text-gray-500 hover:text-blue-600 transition text-xs">
+        <span class="text-lg">👤</span>
+        <span>Account</span>
+      </button>
+      <button class="hidden sm:flex flex-col items-center text-gray-500 hover:text-blue-600 transition text-xs">
+        <span class="text-lg">❤️</span>
+        <span>Wishlist</span>
+      </button>
+      <button onclick="openCart()" class="flex flex-col items-center text-gray-500 hover:text-blue-600 transition text-xs relative">
+        <span class="text-lg relative">🛒
+          <span id="badge" class="hidden absolute -top-1 -right-2 bg-blue-600 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
+        </span>
+        <span>Cart</span>
+      </button>
+      <button onclick="toggleDevPanel()" class="text-[10px] text-gray-300 hover:text-gray-500 transition font-mono">DevOps ⚙</button>
+    </div>
   </div>
-  <div class="flex items-center gap-4">
-    <button onclick="toggleDevPanel()" class="text-xs text-gray-400 hover:text-gray-600 transition">DevOps ⚙</button>
-    <button onclick="openCart()" class="relative text-lg p-1">
-      🛒<span id="badge" class="hidden absolute -top-1 -right-2 bg-blue-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
-    </button>
-  </div>
+
+  <!-- Category Nav -->
+  <nav class="border-t bg-white">
+    <div class="max-w-7xl mx-auto px-4 flex gap-6 overflow-x-auto py-2 text-sm">
+      <button onclick="filterCat(null)" id="cat-all" class="cat-btn whitespace-nowrap font-medium text-blue-600 border-b-2 border-blue-600 pb-1 transition">All</button>
+      <button onclick="filterCat('Electronics')" id="cat-Electronics" class="cat-btn whitespace-nowrap text-gray-500 hover:text-gray-800 pb-1 transition">Electronics</button>
+      <button onclick="filterCat('Wearables')" id="cat-Wearables" class="cat-btn whitespace-nowrap text-gray-500 hover:text-gray-800 pb-1 transition">Wearables</button>
+      <button onclick="filterCat('Audio')" id="cat-Audio" class="cat-btn whitespace-nowrap text-gray-500 hover:text-gray-800 pb-1 transition">Audio</button>
+      <button onclick="filterCat('Accessories')" id="cat-Accessories" class="cat-btn whitespace-nowrap text-gray-500 hover:text-gray-800 pb-1 transition">Accessories</button>
+      <button onclick="filterCat('Gaming')" id="cat-Gaming" class="cat-btn whitespace-nowrap text-gray-500 hover:text-gray-800 pb-1 transition">Gaming</button>
+    </div>
+  </nav>
 </header>
 
-<!-- DevOps Control Bar -->
-<div id="dev-panel" class="hidden bg-slate-900 text-white px-6 py-3 border-b border-slate-800">
-  <div class="flex items-center justify-between mb-2">
-    <p class="text-[11px] text-slate-400 font-mono uppercase tracking-wider">Traffic & Failure Scenarios</p>
-    <span class="text-[10px] text-slate-500 font-mono">Cluster: BLR-Node-1</span>
-  </div>
-  <div class="flex flex-wrap gap-2">
-    <button onclick="inject('billing')"    class="inj-btn bg-red-950/80 text-red-300 border-red-800 hover:bg-red-900">ZeroDivision (FREE100)</button>
-    <button onclick="inject('checkout')"   class="inj-btn bg-amber-950/80 text-amber-300 border-amber-800 hover:bg-amber-900">KeyError (Guest Checkout)</button>
-    <button onclick="inject('inventory')"  class="inj-btn bg-yellow-950/80 text-yellow-300 border-yellow-800 hover:bg-yellow-900">IndexError (Tier 99)</button>
-    <button onclick="inject('auth')"       class="inj-btn bg-purple-950/80 text-purple-300 border-purple-800 hover:bg-purple-900">TypeError (Session)</button>
-    <button onclick="inject('promotions')" class="inj-btn bg-rose-950/80 text-rose-300 border-rose-800 hover:bg-rose-900">ValueError (Coupon)</button>
-    <button onclick="inject('gateway')"    class="inj-btn bg-blue-950/80 text-blue-300 border-blue-800 hover:bg-blue-900">TimeoutError (Gateway)</button>
-    <button onclick="storm()"              class="inj-btn bg-indigo-900 text-indigo-200 border-indigo-700 hover:bg-indigo-800 font-semibold">⚡ Traffic Burst (100x)</button>
+<!-- DevOps Control Panel -->
+<div id="dev-panel" class="hidden bg-slate-950 text-white border-b border-slate-800">
+  <div class="max-w-7xl mx-auto px-4 py-3">
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+        <p class="text-[11px] text-slate-400 font-mono uppercase tracking-widest">Fault Injection Console · Cluster: BLR-Node-1</p>
+      </div>
+      <span class="text-[10px] text-slate-600 font-mono">OpsMind AI Monitoring Active</span>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button onclick="inject('billing')"    class="inj-btn bg-red-950/80 text-red-300 border-red-800 hover:bg-red-900">💥 ZeroDivisionError (FREE100)</button>
+      <button onclick="inject('checkout')"   class="inj-btn bg-amber-950/80 text-amber-300 border-amber-800 hover:bg-amber-900">🔑 KeyError (Guest Checkout)</button>
+      <button onclick="inject('inventory')"  class="inj-btn bg-yellow-950/80 text-yellow-300 border-yellow-800 hover:bg-yellow-900">📦 IndexError (Tier 99)</button>
+      <button onclick="inject('auth')"       class="inj-btn bg-purple-950/80 text-purple-300 border-purple-800 hover:bg-purple-900">🔐 TokenExpiredError (Session)</button>
+      <button onclick="inject('promotions')" class="inj-btn bg-rose-950/80 text-rose-300 border-rose-800 hover:bg-rose-900">🏷️ ValueError (Coupon Rate)</button>
+      <button onclick="inject('gateway')"    class="inj-btn bg-blue-950/80 text-blue-300 border-blue-800 hover:bg-blue-900">⏱️ TimeoutError (Gateway)</button>
+      <button onclick="storm()"              class="inj-btn bg-indigo-900 text-indigo-200 border-indigo-700 hover:bg-indigo-800 font-semibold">⚡ Traffic Burst (100×)</button>
+    </div>
   </div>
 </div>
-<style>.inj-btn{font-size:11px;font-family:monospace;padding:5px 10px;border-radius:6px;border-width:1px;transition:all 0.15s;cursor:pointer;}</style>
 
-<!-- Main Storefront -->
-<main class="max-w-5xl mx-auto px-6 py-10">
-  <div class="mb-8">
-    <h1 class="text-2xl font-bold tracking-tight text-gray-900">Featured Inventory</h1>
-    <p class="text-gray-500 text-sm mt-1">Direct from Bangalore Fulfillment Centers with instant dispatch.</p>
+<!-- Hero Banner -->
+<section class="gradient-hero text-white">
+  <div class="max-w-7xl mx-auto px-4 py-12 flex flex-col sm:flex-row items-center justify-between gap-8">
+    <div class="flex-1">
+      <div class="inline-flex items-center gap-2 bg-white/10 rounded-full px-3 py-1 text-xs font-medium mb-4">
+        <span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
+        Bangalore Fulfillment Centers — Instant Dispatch
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-bold leading-tight mb-3">India's Fastest<br>Tech Delivery</h1>
+      <p class="text-blue-100 text-sm mb-6 max-w-md">Premium electronics, wearables & accessories delivered in 2 hours from our Bangalore warehouse network.</p>
+      <div class="flex gap-3">
+        <button onclick="document.getElementById('catalog').scrollIntoView({behavior:'smooth'})"
+          class="bg-white text-blue-700 font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-blue-50 transition shadow-lg">
+          Shop Now →
+        </button>
+        <button class="border border-white/30 text-white px-5 py-2.5 rounded-xl text-sm hover:bg-white/10 transition">
+          View Offers
+        </button>
+      </div>
+    </div>
+    <div class="flex gap-4 text-center">
+      <div class="bg-white/10 rounded-2xl px-6 py-4 backdrop-blur-sm">
+        <div class="text-2xl font-bold">2hr</div>
+        <div class="text-blue-200 text-xs">Delivery</div>
+      </div>
+      <div class="bg-white/10 rounded-2xl px-6 py-4 backdrop-blur-sm">
+        <div class="text-2xl font-bold">6</div>
+        <div class="text-blue-200 text-xs">Warehouses</div>
+      </div>
+      <div class="bg-white/10 rounded-2xl px-6 py-4 backdrop-blur-sm">
+        <div class="text-2xl font-bold">99.9%</div>
+        <div class="text-blue-200 text-xs">Uptime</div>
+      </div>
+    </div>
   </div>
-  <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+</section>
+
+<!-- Promo Strip -->
+<div class="bg-white border-b">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-around text-xs text-gray-500 font-medium flex-wrap gap-3">
+    <span class="flex items-center gap-1.5">🚚 <span>Free delivery above ₹499</span></span>
+    <span class="w-px h-4 bg-gray-200 hidden sm:block"></span>
+    <span class="flex items-center gap-1.5">🔄 <span>30-day easy returns</span></span>
+    <span class="w-px h-4 bg-gray-200 hidden sm:block"></span>
+    <span class="flex items-center gap-1.5">🔒 <span>100% secure payments</span></span>
+    <span class="w-px h-4 bg-gray-200 hidden sm:block"></span>
+    <span class="flex items-center gap-1.5">✅ <span>1-year warranty included</span></span>
+  </div>
+</div>
+
+<!-- Product Catalog -->
+<main id="catalog" class="max-w-7xl mx-auto px-4 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h2 class="text-xl font-bold text-gray-900" id="catalog-title">Featured Products</h2>
+      <p class="text-gray-400 text-sm mt-0.5" id="catalog-sub">Direct from Bangalore Fulfillment Centers</p>
+    </div>
+    <div class="flex items-center gap-2 text-sm text-gray-500">
+      <span id="product-count" class="text-gray-400 text-xs"></span>
+      <select class="border rounded-lg px-2 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option>Sort: Featured</option>
+        <option>Price: Low to High</option>
+        <option>Price: High to Low</option>
+        <option>Top Rated</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Skeleton Loading State -->
+  <div id="skeleton" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div class="skeleton h-72 rounded-2xl"></div>
+    <div class="skeleton h-72 rounded-2xl"></div>
+    <div class="skeleton h-72 rounded-2xl"></div>
+    <div class="skeleton h-72 rounded-2xl"></div>
+    <div class="skeleton h-72 rounded-2xl hidden lg:block"></div>
+    <div class="skeleton h-72 rounded-2xl hidden xl:block"></div>
+  </div>
+
+  <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 hidden"></div>
 </main>
 
+<!-- Cart Drawer Overlay -->
+<div id="overlay" onclick="closeCart()" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50"></div>
+
 <!-- Cart Drawer -->
-<div id="overlay" onclick="closeCart()" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"></div>
-<aside id="drawer" class="fixed right-0 top-0 h-full w-80 bg-white border-l z-50 flex flex-col translate-x-full transition-transform duration-200 shadow-2xl">
-  <div class="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
-    <h2 class="font-semibold text-gray-800">Shopping Cart</h2>
-    <button onclick="closeCart()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
-  </div>
-  <div id="cart-list" class="flex-1 overflow-y-auto p-6 space-y-3 text-sm"></div>
-  <div class="p-6 border-t bg-gray-50 space-y-3">
-    <div class="flex justify-between text-sm font-semibold text-gray-800">
-      <span>Estimated Total</span><span id="total">₹0</span>
+<aside id="drawer" class="fixed right-0 top-0 h-full w-96 bg-white z-50 flex flex-col shadow-2xl transition-transform duration-300 translate-x-full">
+  <div class="px-6 py-4 border-b flex justify-between items-center">
+    <div>
+      <h2 class="font-bold text-gray-900 text-lg">Shopping Cart</h2>
+      <p class="text-xs text-gray-400" id="cart-subtitle">0 items</p>
     </div>
-    <input id="coupon" type="text" placeholder="Promo Code (e.g. SAVE10)"
-      class="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-    <input id="address" type="text" placeholder="Delivery Address (blank for guest)"
+    <button onclick="closeCart()" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition text-lg">×</button>
+  </div>
+  <div id="cart-list" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+  <div class="p-5 border-t bg-gray-50 space-y-3">
+    <!-- Price Summary -->
+    <div class="space-y-1.5 text-sm">
+      <div class="flex justify-between text-gray-500"><span>Subtotal</span><span id="subtotal-display">₹0</span></div>
+      <div class="flex justify-between text-green-600 text-xs"><span>Delivery</span><span>FREE</span></div>
+      <div class="flex justify-between font-bold text-gray-900 text-base border-t pt-2"><span>Total</span><span id="total">₹0</span></div>
+    </div>
+    <!-- Coupon -->
+    <div class="flex gap-2">
+      <input id="coupon" type="text" placeholder="Promo code (e.g. SAVE10)"
+        class="flex-1 border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+      <button class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-medium px-3 rounded-lg transition">Apply</button>
+    </div>
+    <!-- Address -->
+    <input id="address" type="text" placeholder="Delivery address (leave blank to test guest checkout fault)"
       class="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
     <button onclick="checkout()"
-      class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-semibold transition shadow-sm">
-      Confirm & Place Order
+      class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white py-3 rounded-xl text-sm font-semibold transition shadow-sm">
+      Place Order →
     </button>
+    <p class="text-center text-[10px] text-gray-400">🔒 SSL encrypted · Powered by ShopFlow Payments</p>
   </div>
 </aside>
 
-<!-- Status Modal -->
-<div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+<!-- Order Status Modal -->
+<div id="modal" class="hidden fixed inset-0 z-60 flex items-center justify-center px-4">
   <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeModal()"></div>
-  <div id="modal-card" class="relative bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 border"></div>
+  <div id="modal-card" class="relative bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full border"></div>
 </div>
 
-<!-- Network Event Stream (Storefront Client Log) -->
-<div class="fixed bottom-4 right-4 w-80 bg-white border rounded-xl shadow-xl z-20 overflow-hidden">
-  <div class="px-4 py-2 bg-gray-50 border-b flex justify-between items-center">
-    <span class="text-[10px] uppercase tracking-wider text-gray-500 font-semibold font-mono">Network Events</span>
-    <button onclick="clearLog()" class="text-[10px] text-gray-400 hover:text-gray-600 font-mono">clear</button>
+<!-- Network Event Log (Fixed Bottom Right) -->
+<div class="fixed bottom-4 right-4 w-80 bg-white border border-gray-200 rounded-2xl shadow-2xl z-30 overflow-hidden">
+  <div class="px-4 py-2.5 bg-gray-50 border-b flex justify-between items-center">
+    <div class="flex items-center gap-2">
+      <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
+      <span class="text-[10px] uppercase tracking-widest text-gray-500 font-semibold font-mono">Network Events</span>
+    </div>
+    <button onclick="clearLog()" class="text-[10px] text-gray-400 hover:text-red-500 font-mono transition">clear</button>
   </div>
   <div id="log" class="overflow-y-auto p-3 space-y-1 font-mono text-[11px] bg-white" style="max-height:160px;"></div>
 </div>
 
 <script>
 const API = `${window.location.origin}/api`;
-let cart = [];
+let cart = [], allProducts = [], activeCategory = null;
 
-// Logger
+// ── Logger ──────────────────────────────────────────────
 const logEl = document.getElementById('log');
 function slog(msg, c='text-gray-500') {
   const ts = new Date().toLocaleTimeString('en-GB',{hour12:false});
@@ -101,115 +260,217 @@ function slog(msg, c='text-gray-500') {
 }
 function clearLog() { logEl.innerHTML = ''; }
 
-// Health Check
+// ── Health Check ─────────────────────────────────────────
 async function checkHealth() {
-  const el = document.getElementById('status');
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
   try {
     const res = await fetch(`${API}/health`);
     if (res.ok) {
-      el.textContent = '● Online';
-      el.className = 'text-xs px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium';
+      dot.className = 'w-1.5 h-1.5 rounded-full bg-green-500 inline-block';
+      txt.className = 'text-[10px] text-green-600 font-medium';
+      txt.textContent = 'Online';
     } else { throw new Error(); }
   } catch {
-    el.textContent = '● Offline';
-    el.className = 'text-xs px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 font-medium';
+    dot.className = 'w-1.5 h-1.5 rounded-full bg-red-500 inline-block animate-pulse';
+    txt.className = 'text-[10px] text-red-500 font-medium';
+    txt.textContent = 'Offline';
   }
 }
 
-// Load Catalog
+// ── Star Rating ──────────────────────────────────────────
+function stars(n) {
+  return Array.from({length:5}, (_,i) =>
+    `<span class="${i < Math.round(n) ? 'text-amber-400' : 'text-gray-200'}">★</span>`
+  ).join('');
+}
+
+// ── Product Catalog ──────────────────────────────────────
+const RATINGS = { 1:4.8, 2:4.6, 3:4.9, 4:4.7, 5:4.5, 6:4.4, 7:4.8, 8:4.3, 9:4.6, 10:4.7 };
+const REVIEWS = { 1:'2.4k', 2:'1.1k', 3:'3.8k', 4:'892', 5:'1.6k', 6:'744', 7:'2.1k', 8:'413', 9:'988', 10:'1.3k' };
+const DISCOUNT= { 1:12, 2:8, 3:15, 4:20, 5:10, 6:25, 7:18, 8:30, 9:22, 10:5 };
+
 async function loadProducts() {
   try {
     const {products} = await (await fetch(`${API}/products`)).json();
-    document.getElementById('grid').innerHTML = products.map(p => `
-      <div class="bg-white border rounded-2xl p-5 hover:shadow-lg transition flex flex-col justify-between">
-        <div>
-          <div class="text-4xl mb-3">${p.emoji}</div>
-          <p class="text-[10px] text-gray-400 font-mono uppercase tracking-wider mb-1">${p.category}</p>
-          <h3 class="font-semibold text-sm mb-3 leading-snug text-gray-800">${p.name}</h3>
-        </div>
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-bold text-blue-600 text-base">₹${Number(p.price).toLocaleString('en-IN')}</span>
-            <button onclick='add(${JSON.stringify(p)})' class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition font-medium">Add to Cart</button>
-          </div>
-          <p class="text-[10px] text-gray-400 font-mono">${p.stock} units available · SKU: ${p.sku}</p>
-        </div>
-      </div>`).join('');
-  } catch { slog('ERR: Failed to connect to product catalog', 'text-red-500 font-semibold'); }
+    allProducts = products;
+    document.getElementById('skeleton').remove();
+    renderProducts(products);
+    slog(`GET /api/products → ${products.length} items loaded`, 'text-green-600');
+  } catch {
+    document.getElementById('skeleton').remove();
+    document.getElementById('grid').innerHTML = `
+      <div class="col-span-full text-center py-16">
+        <div class="text-5xl mb-4">⚠️</div>
+        <h3 class="text-gray-700 font-semibold mb-2">Failed to load catalog</h3>
+        <p class="text-gray-400 text-sm mb-4">Could not connect to the product service.</p>
+        <button onclick="location.reload()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">Retry</button>
+      </div>`;
+    document.getElementById('grid').classList.remove('hidden');
+    slog('ERR: Failed to connect to product catalog', 'text-red-500 font-semibold');
+  }
 }
 
-// Cart Management
+function renderProducts(products) {
+  const grid = document.getElementById('grid');
+  document.getElementById('product-count').textContent = `${products.length} products`;
+  grid.classList.remove('hidden');
+  if (!products.length) {
+    grid.innerHTML = `<div class="col-span-full text-center py-16 text-gray-400">No products in this category.</div>`;
+    return;
+  }
+  grid.innerHTML = products.map(p => {
+    const rating = RATINGS[p.id] || 4.5;
+    const reviews = REVIEWS[p.id] || '500';
+    const disc = DISCOUNT[p.id] || 10;
+    const origPrice = Math.round(p.price / (1 - disc/100));
+    return `
+    <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden card-hover cursor-pointer flex flex-col" onclick="">
+      <!-- Product Image Area -->
+      <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-6 flex items-center justify-center h-40 relative">
+        <span class="text-6xl">${p.emoji}</span>
+        <span class="absolute top-3 left-3 badge-sale text-white text-[10px] font-bold px-2 py-0.5 rounded-full">${disc}% OFF</span>
+        ${p.stock < 10 ? `<span class="absolute top-3 right-3 bg-orange-100 text-orange-600 text-[10px] font-semibold px-2 py-0.5 rounded-full">Only ${p.stock} left</span>` : ''}
+      </div>
+      <!-- Product Info -->
+      <div class="p-4 flex flex-col flex-1">
+        <p class="text-[10px] text-blue-600 font-semibold uppercase tracking-wider mb-1">${p.category}</p>
+        <h3 class="font-semibold text-sm text-gray-800 leading-snug mb-2 flex-1">${p.name}</h3>
+        <!-- Ratings -->
+        <div class="flex items-center gap-1.5 mb-3">
+          <div class="flex text-sm">${stars(rating)}</div>
+          <span class="text-xs font-semibold text-gray-700">${rating}</span>
+          <span class="text-xs text-gray-400">(${reviews} reviews)</span>
+        </div>
+        <!-- Price -->
+        <div class="flex items-end justify-between">
+          <div>
+            <div class="flex items-baseline gap-1.5">
+              <span class="font-bold text-gray-900 text-base">₹${Number(p.price).toLocaleString('en-IN')}</span>
+            </div>
+            <span class="text-xs text-gray-400 line-through">₹${Number(origPrice).toLocaleString('en-IN')}</span>
+          </div>
+          <button onclick='event.stopPropagation(); add(${JSON.stringify(p)})'
+            class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow-sm">
+            + Cart
+          </button>
+        </div>
+        <!-- Delivery Promise -->
+        <p class="text-[10px] text-green-600 font-medium mt-2 flex items-center gap-1">
+          🚚 Free delivery · Arrives in 2 hours
+        </p>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterCat(cat) {
+  activeCategory = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => {
+    b.className = 'cat-btn whitespace-nowrap text-gray-500 hover:text-gray-800 pb-1 transition';
+  });
+  const activeId = cat ? `cat-${cat}` : 'cat-all';
+  document.getElementById(activeId).className = 'cat-btn whitespace-nowrap font-medium text-blue-600 border-b-2 border-blue-600 pb-1 transition';
+  const filtered = cat ? allProducts.filter(p => p.category === cat) : allProducts;
+  const title = cat || 'All Products';
+  document.getElementById('catalog-title').textContent = title;
+  renderProducts(filtered);
+}
+
+// ── Cart ─────────────────────────────────────────────────
 function add(p) {
   const e = cart.find(i => i.p.id === p.id);
   e ? e.q++ : cart.push({p, q: 1});
   renderCart();
-  slog(`CART: Added "${p.name.slice(0,25)}..."`, 'text-green-600');
+  slog(`CART: Added "${p.name.slice(0,30)}"`, 'text-green-600');
+  // Pulse the cart button
+  const badge = document.getElementById('badge');
+  badge.classList.add('scale-125');
+  setTimeout(() => badge.classList.remove('scale-125'), 200);
 }
+
 function remove(i) { cart.splice(i, 1); renderCart(); }
+function updateQty(i, delta) {
+  cart[i].q += delta;
+  if (cart[i].q <= 0) cart.splice(i, 1);
+  renderCart();
+}
+
 function renderCart() {
   const tot = cart.reduce((s,i) => s + i.p.price * i.q, 0);
   const cnt = cart.reduce((s,i) => s + i.q, 0);
   document.getElementById('total').textContent = `₹${tot.toLocaleString('en-IN')}`;
+  document.getElementById('subtotal-display').textContent = `₹${tot.toLocaleString('en-IN')}`;
+  document.getElementById('cart-subtitle').textContent = `${cnt} item${cnt !== 1 ? 's' : ''}`;
   const b = document.getElementById('badge');
   cnt > 0 ? (b.textContent = cnt, b.classList.remove('hidden')) : b.classList.add('hidden');
   const el = document.getElementById('cart-list');
   el.innerHTML = cart.length ? cart.map((i,idx) => `
-    <div class="flex items-center gap-3 bg-gray-50 p-2.5 rounded-xl border">
-      <span class="text-2xl">${i.p.emoji}</span>
+    <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+      <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl border">${i.p.emoji}</div>
       <div class="flex-1 min-w-0">
-        <p class="font-medium text-xs truncate text-gray-800">${i.p.name}</p>
-        <p class="text-gray-400 text-xs font-mono">₹${Number(i.p.price).toLocaleString('en-IN')} × ${i.q}</p>
+        <p class="font-medium text-xs text-gray-800 truncate leading-tight">${i.p.name}</p>
+        <p class="text-blue-600 text-xs font-semibold mt-0.5">₹${Number(i.p.price).toLocaleString('en-IN')}</p>
+        <div class="flex items-center gap-2 mt-1.5">
+          <button onclick="updateQty(${idx},-1)" class="w-5 h-5 rounded-full bg-gray-200 hover:bg-gray-300 text-xs font-bold flex items-center justify-center transition">−</button>
+          <span class="text-xs font-semibold w-4 text-center">${i.q}</span>
+          <button onclick="updateQty(${idx},1)" class="w-5 h-5 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-bold flex items-center justify-center transition">+</button>
+        </div>
       </div>
-      <button onclick="remove(${idx})" class="text-gray-300 hover:text-red-500 text-xl font-bold">&times;</button>
-    </div>`).join('') : '<p class="text-gray-400 text-center mt-6">Your shopping cart is empty.</p>';
+      <button onclick="remove(${idx})" class="text-gray-300 hover:text-red-400 transition text-xl font-bold self-start">×</button>
+    </div>`).join('')
+    : `<div class="text-center py-12">
+        <div class="text-5xl mb-3">🛒</div>
+        <p class="text-gray-500 font-medium mb-1">Your cart is empty</p>
+        <p class="text-gray-400 text-xs">Add items from the catalog to get started</p>
+       </div>`;
 }
-function openCart() { document.getElementById('drawer').classList.replace('translate-x-full','translate-x-0'); document.getElementById('overlay').classList.remove('hidden'); }
+
+function openCart()  { document.getElementById('drawer').classList.replace('translate-x-full','translate-x-0'); document.getElementById('overlay').classList.remove('hidden'); renderCart(); }
 function closeCart() { document.getElementById('drawer').classList.replace('translate-x-0','translate-x-full'); document.getElementById('overlay').classList.add('hidden'); }
 
-// Checkout Flow
+// ── Checkout ─────────────────────────────────────────────
 async function checkout() {
-  if (!cart.length) return;
+  if (!cart.length) { slog('WARN: Cart is empty', 'text-amber-500'); return; }
   const addr = document.getElementById('address').value.trim();
   const code = document.getElementById('coupon').value.trim().toUpperCase() || null;
-  slog(`HTTP POST /api/checkout${code ? ` [Coupon: ${code}]` : ''}`, 'text-blue-600 font-medium');
+  slog(`POST /api/checkout${code ? ` [${code}]` : ''}`, 'text-blue-600 font-medium');
   closeCart();
   try {
     const res = await fetch(`${API}/checkout`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        coupon_code: code,
-        customer_payload: addr ? {shipping_address: addr} : {},
-        warehouse_tier: 0
-      })
+      body: JSON.stringify({ coupon_code: code, customer_payload: addr ? {shipping_address: addr} : {}, warehouse_tier: 0 })
     });
     const data = await res.json();
     if (res.ok) {
-      slog(`HTTP 200: Order ${data.order.order_id} confirmed (₹${data.billing.total_payable})`, 'text-green-600');
-      showSuccess(data);
-      cart = []; renderCart();
+      slog(`HTTP 200: ${data.order.order_id} confirmed (₹${data.billing.total_payable})`, 'text-green-600');
+      showSuccess(data); cart = []; renderCart();
     } else {
-      slog(`HTTP 500: Server error (${data.error_type})`, 'text-red-500 font-semibold');
+      slog(`HTTP 500: ${data.error_type}`, 'text-red-500 font-semibold');
       showError(data);
     }
   } catch(e) { slog(`NET_ERR: ${e.message}`, 'text-red-500'); }
 }
 
-// Modals
+// ── Modals ───────────────────────────────────────────────
 function showSuccess(d) {
   document.getElementById('modal-card').innerHTML = `
     <div class="text-center">
-      <div class="text-4xl mb-3">✅</div>
-      <h2 class="text-lg font-bold mb-1 text-gray-800">Order Confirmed</h2>
-      <p class="text-gray-400 text-xs font-mono mb-5">${d.order.order_id}</p>
-      <div class="bg-gray-50 rounded-xl p-4 text-left text-sm space-y-1.5 mb-5 border">
-        <div class="flex justify-between"><span class="text-gray-500">Subtotal</span><span>₹${d.billing.subtotal}</span></div>
-        <div class="flex justify-between"><span class="text-gray-500">Discount</span><span class="text-green-600">−₹${d.billing.discount_amount}</span></div>
-        <div class="flex justify-between"><span class="text-gray-500">GST (18%)</span><span>₹${d.billing.tax}</span></div>
-        <div class="flex justify-between font-bold border-t pt-2 text-gray-900"><span>Total Payable</span><span class="text-blue-600">₹${d.billing.total_payable}</span></div>
+      <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+        <span class="text-3xl">✅</span>
       </div>
-      <p class="text-xs text-gray-400 font-mono">Fulfillment Hub: ${d.facility}</p>
-      <button onclick="closeModal()" class="mt-4 text-sm text-gray-500 hover:text-gray-800 font-medium">Done</button>
+      <h2 class="text-xl font-bold text-gray-900 mb-1">Order Placed!</h2>
+      <p class="text-gray-400 text-xs font-mono mb-5">${d.order.order_id}</p>
+      <div class="bg-gray-50 rounded-xl p-4 text-left text-sm space-y-2 mb-5 border">
+        <div class="flex justify-between"><span class="text-gray-500">Subtotal</span><span class="font-medium">₹${d.billing.subtotal}</span></div>
+        <div class="flex justify-between"><span class="text-gray-500">Discount</span><span class="font-medium text-green-600">−₹${d.billing.discount_amount}</span></div>
+        <div class="flex justify-between"><span class="text-gray-500">GST (18%)</span><span class="font-medium">₹${d.billing.tax}</span></div>
+        <div class="flex justify-between font-bold border-t pt-2 text-gray-900"><span>Total Charged</span><span class="text-blue-600">₹${d.billing.total_payable}</span></div>
+      </div>
+      <p class="text-xs text-gray-400 mb-1">📦 Fulfillment Hub: <span class="font-medium text-gray-600">${d.facility}</span></p>
+      <p class="text-xs text-green-600 font-medium mb-5">🚚 Estimated delivery in 2 hours</p>
+      <button onclick="closeModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-semibold transition">Continue Shopping</button>
     </div>`;
   document.getElementById('modal').classList.remove('hidden');
 }
@@ -217,21 +478,23 @@ function showSuccess(d) {
 function showError(d) {
   document.getElementById('modal-card').innerHTML = `
     <div class="text-center">
-      <div class="text-4xl mb-3">⚠️</div>
-      <h2 class="text-lg font-bold text-red-600 mb-1">Server Error</h2>
-      <p class="text-gray-700 font-medium text-sm mb-1">${d.error_type}</p>
-      <p class="text-gray-400 text-xs font-mono mb-5">${d.message || 'Internal Server Error'}</p>
-      <div class="bg-red-50 border border-red-100 rounded-xl p-3 text-xs text-red-700 text-left mb-5">
-        An unhandled server exception occurred while processing this transaction. The failure details have been recorded in the server log.
+      <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+        <span class="text-3xl">⚠️</span>
       </div>
-      <button onclick="closeModal()" class="text-sm text-gray-500 hover:text-gray-800 font-medium">Close</button>
+      <h2 class="text-lg font-bold text-red-600 mb-1">Server Error</h2>
+      <p class="text-gray-700 font-mono text-sm font-medium mb-1">${d.error_type}</p>
+      <p class="text-gray-400 text-xs font-mono mb-5 break-all">${d.message || 'Internal Server Error'}</p>
+      <div class="bg-red-50 border border-red-100 rounded-xl p-3 text-xs text-red-600 text-left mb-5 font-medium">
+        An unhandled exception occurred. This event has been captured by the OpsMind monitoring pipeline for automated root cause analysis.
+      </div>
+      <button onclick="closeModal()" class="w-full border border-gray-200 hover:bg-gray-50 text-gray-600 py-2.5 rounded-xl text-sm font-medium transition">Dismiss</button>
     </div>`;
   document.getElementById('modal').classList.remove('hidden');
 }
 
 function closeModal() { document.getElementById('modal').classList.add('hidden'); }
 
-// DevOps Panel
+// ── DevOps Panel ─────────────────────────────────────────
 function toggleDevPanel() { document.getElementById('dev-panel').classList.toggle('hidden'); }
 
 const SCENARIOS = {
@@ -245,38 +508,31 @@ const SCENARIOS = {
 
 async function inject(type) {
   const s = SCENARIOS[type];
-  slog(`[TEST] Invoking ${type}...`, 'text-slate-600');
+  slog(`[INJECT] ${type} scenario triggered`, 'text-slate-500');
   try {
-    const res = await fetch(`${API}${s.url}`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(s.body)
-    });
+    const res = await fetch(`${API}${s.url}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(s.body)});
     const d = await res.json();
-    if (res.ok) {
-      slog(`HTTP 200: Handled successfully`, 'text-green-600 font-semibold');
-    } else {
-      slog(`HTTP 500: ${d.error_type} triggered`, 'text-red-500 font-semibold');
-      showError(d);
-    }
+    if (res.ok) { slog(`HTTP 200: Handled — no fault triggered`, 'text-green-600 font-semibold'); }
+    else { slog(`HTTP 500: ${d.error_type} — fault injected successfully`, 'text-red-500 font-semibold'); showError(d); }
   } catch(e) { slog(`ERR: ${e.message}`, 'text-red-500'); }
 }
 
 async function storm() {
   slog('BURST: Dispatching 100 concurrent requests...', 'text-amber-600 font-semibold');
-  const reqs = Array.from({length: 100}).map(() =>
-    fetch(`${API}/checkout`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({coupon_code: 'FREE100', customer_payload: {shipping_address: 'BLR'}, warehouse_tier: 0})
+  const reqs = Array.from({length:100}).map(() =>
+    fetch(`${API}/checkout`, {method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({coupon_code:'FREE100',customer_payload:{shipping_address:'BLR'},warehouse_tier:0})
     }).catch(() => null)
   );
   const results = await Promise.all(reqs);
   const errors = results.filter(r => r && r.status === 500).length;
-  slog(`BURST DONE: ${errors}/100 responses returned 500 Server Error`, 'text-red-600 font-semibold');
+  slog(`BURST DONE: ${errors}/100 returned HTTP 500`, 'text-red-600 font-semibold');
 }
 
-checkHealth(); loadProducts(); renderCart();
+// ── Init ─────────────────────────────────────────────────
+checkHealth();
+loadProducts();
+renderCart();
 setInterval(checkHealth, 30000);
 </script>
 </body>
