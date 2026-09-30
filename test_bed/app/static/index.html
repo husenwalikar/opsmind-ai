@@ -107,6 +107,14 @@
       <button onclick="inject('gateway')"    class="inj-btn bg-blue-950/80 text-blue-300 border-blue-800 hover:bg-blue-900">⏱️ TimeoutError (Gateway)</button>
       <button onclick="storm()"              class="inj-btn bg-indigo-900 text-indigo-200 border-indigo-700 hover:bg-indigo-800 font-semibold">⚡ Traffic Burst (100×)</button>
     </div>
+    <div class="mt-2.5 pt-2 border-t border-slate-900 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-slate-400 font-mono">
+      <span class="text-slate-500 font-bold">PRESENTER CHEATSHEET:</span>
+      <span>NetBanking = Timeout</span>
+      <span>Rural SpeedPost = IndexError</span>
+      <span>Empty Address = KeyError</span>
+      <span>FREE100 = ZeroDivision</span>
+      <span>Account Refresh = Auth Error</span>
+    </div>
   </div>
 </div>
 
@@ -217,28 +225,29 @@
         class="flex-1 border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
       <button onclick="applyPromo()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-3.5 rounded-lg transition">Apply</button>
     </div>
-    <!-- Fulfillment Node (Warehouse Tier) -->
+    <!-- Delivery Speed & Fulfillment Hub -->
     <div>
-      <label class="block text-[11px] font-medium text-gray-500 mb-1">Fulfillment Node (Warehouse)</label>
+      <label class="block text-[11px] font-medium text-gray-500 mb-1">Delivery Speed & Hub</label>
       <select id="warehouse-tier" class="w-full border rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <option value="0">BLR-FC-NORTH (Standard Hub · Tier 0)</option>
-        <option value="1">BLR-FC-SOUTH (Express Hub · Tier 1)</option>
-        <option value="2">BLR-FC-WEST (Priority Hub · Tier 2)</option>
-        <option value="99">Rural Relay Node (Tier 99 · Out-of-bounds Test)</option>
+        <option value="0">Standard Delivery (2-3 Days · Bangalore Central)</option>
+        <option value="1">Express Dispatch (Same Day · Electronic City Hub)</option>
+        <option value="2">Priority 2-Hour Dispatch (Whitefield Hub)</option>
+        <option value="99">Rural Relay / Remote SpeedPost</option>
       </select>
     </div>
     <!-- Payment Method -->
     <div>
       <label class="block text-[11px] font-medium text-gray-500 mb-1">Payment Method</label>
       <select id="payment-method" class="w-full border rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <option value="card">Card / UPI (Instant Settlement)</option>
-        <option value="bank_hang">Direct Bank Settlement (Simulate Gateway Hang)</option>
+        <option value="card">Credit / Debit Card (Visa, MasterCard)</option>
+        <option value="upi">UPI / Instant QR (PhonePe, GPay, Paytm)</option>
+        <option value="bank_hang">NetBanking (Direct Bank Wire Transfer)</option>
       </select>
     </div>
     <!-- Address -->
     <div>
       <label class="block text-[11px] font-medium text-gray-500 mb-1">Delivery Destination</label>
-      <input id="address" type="text" placeholder="Street Address (leave empty for Guest Checkout test)"
+      <input id="address" type="text" placeholder="Flat, Street, Landmark & Pincode"
         class="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
     </div>
     <button onclick="checkout()"
@@ -532,26 +541,26 @@ function openAccountModal() {
           👤
         </div>
         <div>
-          <h2 class="text-base font-bold text-gray-900 leading-snug">Customer Account</h2>
-          <p class="text-xs text-gray-400 font-mono">Account ID: CUST_94821</p>
+          <h2 class="text-base font-bold text-gray-900 leading-snug">Husen Walikar</h2>
+          <p class="text-xs text-blue-600 font-medium">ShopFlow Gold Member · Bangalore</p>
         </div>
       </div>
-      <p class="text-xs text-gray-600 mb-4">
-        Manage customer identity, bearer sessions, and authorization credentials.
+      <p class="text-xs text-gray-500 mb-4">
+        Your Prime Gold benefits are active: Unlimited 2-hour delivery & early campaign access.
       </p>
-      <div class="p-3 bg-gray-50 border border-gray-100 rounded-xl space-y-1 mb-5 text-xs">
+      <div class="p-3 bg-gray-50 border border-gray-100 rounded-xl space-y-1 mb-4 text-xs">
         <div class="flex justify-between items-center">
-          <span class="text-gray-500 font-medium">Session Token:</span>
-          <span class="font-mono text-gray-700 bg-white px-2 py-0.5 rounded border text-[10px]">EXPIRED_JWT_XYZ</span>
+          <span class="text-gray-500 font-medium">Account ID</span>
+          <span class="font-mono text-gray-700 text-[11px]">SF-CUST-84920</span>
         </div>
-        <div class="flex justify-between items-center pt-1">
-          <span class="text-gray-500 font-medium">Token State:</span>
-          <span class="text-amber-600 font-semibold text-[10px]">● Expired / Stale</span>
+        <div class="flex justify-between items-center pt-1 border-t border-gray-200/60">
+          <span class="text-gray-500 font-medium">Linked Payment</span>
+          <span class="text-gray-700 text-[11px]">HDFC **** 4091</span>
         </div>
       </div>
       <div class="space-y-2">
         <button onclick="verifySessionAuth()" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white py-2.5 rounded-xl text-xs font-semibold transition shadow-sm">
-          Verify Session Claims (Test Auth)
+          Refresh Membership Privileges
         </button>
         <button onclick="closeModal()" class="w-full border border-gray-200 hover:bg-gray-50 text-gray-600 py-2.5 rounded-xl text-xs font-medium transition">
           Close
