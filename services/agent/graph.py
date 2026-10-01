@@ -5,8 +5,15 @@ Conforms strictly to the OpsMind SRE architecture:
   Analyzer Node -> Coder Node -> Tester Node -> Runner Node (Docker Sandbox) -> Evaluator -> Debugger Node / END
 """
 
+import sys
 import time
 from typing import Any, Dict, List, Optional, TypedDict
+
+# Resilient Windows terminal encoding configuration
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 from langgraph.graph import END, START, StateGraph
 
@@ -94,7 +101,9 @@ def coder_node(state: RemediationState) -> Dict[str, Any]:
     )
 
     log_detail = (
-        f"[CoderNode] Generated SEARCH/REPLACE patch for {diagnostic.target_file} "
+        f"[CoderNode] Root Cause Identified: \"{diagnostic.root_cause_analysis}\"\n"
+        f"  --> [CoderNode] Remediation Strategy: \"{diagnostic.explanation}\"\n"
+        f"  --> [CoderNode] Generated SEARCH/REPLACE patch for {diagnostic.target_file} "
         f"(Confidence: {diagnostic.confidence_score * 100:.1f}%)"
     )
 
@@ -317,12 +326,34 @@ if __name__ == "__main__":
     for log in result.get("logs", []):
         print(f"  --> {log}")
 
-    print("\n" + "-" * 75)
-    print("  FINAL STATE MACHINE STATUS:", result.get("status"))
-    if result.get("sandbox_result") and result["sandbox_result"].success:
-        print("  SANDBOX VERIFICATION:     PASSED (Exit Code == 0)")
-        print("  GENERATED UNIFIED DIFF:")
-        print(result["patch_result"].diff)
+    print("\n" + "=" * 75)
+    print("  OPSMIND AI — REMEDIATION POST-MORTEM & AUDIT REPORT")
+    print("=" * 75)
+    print("  FINAL STATUS:             ", result.get("status"))
+
+    diag = result.get("diagnostic")
+    sandbox = result.get("sandbox_result")
+    patch = result.get("patch_result")
+
+    if diag:
+        print(f"  CONFIDENCE SCORE:          {diag.confidence_score * 100:.1f}%")
+        print("\n  ROOT CAUSE ANALYSIS:")
+        print(f"    {diag.root_cause_analysis}")
+        print("\n  REMEDIATION STRATEGY & EXPLANATION:")
+        print(f"    {diag.explanation}")
+
+    if sandbox and sandbox.success:
+        print(f"\n  SANDBOX VERIFICATION:      PASSED (Exit Code: {sandbox.exit_code}, Mode: {sandbox.mode})")
+        print("  HOST REPOSITORY STATUS:    UNTOUCHED (Verified in RAM scratchpad)")
+        print("\n" + "-" * 75)
+        print("  GENERATED MATHEMATICAL UNIFIED DIFF:")
+        print("-" * 75)
+        print(patch.diff if patch else "No diff available.")
+        print("-" * 75)
     else:
-        print("  SANDBOX VERIFICATION:     FAILED / MANUAL REVIEW REQUIRED")
+        print(f"\n  SANDBOX VERIFICATION:      FAILED / ESCALATED TO HUMAN SRE")
+        if sandbox:
+            print(f"  CONTAINER EXIT CODE:       {sandbox.exit_code}")
+            print(f"  STDERR / TRACEBACK:        {sandbox.stderr}")
+
     print("=" * 75 + "\n")
