@@ -1,4 +1,4 @@
-﻿"""
+"""
 Diagnostic Reasoning and Patch Synthesis Agent.
 Integrates Groq API with RAG context to produce surgical Search/Replace patches.
 """
@@ -129,7 +129,7 @@ def diagnose_and_generate_patch(
         ],
         response_format={"type": "json_object"},
         temperature=0.1,
-        max_tokens=1000,
+        max_tokens=2500,
     )
 
     raw_content = response.choices[0].message.content or "{}"
