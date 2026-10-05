@@ -44,7 +44,7 @@ class RemediationState(TypedDict):
     logs: List[str]
 
 
-# ── NODE 1: ANALYZER NODE ────────────────────────────────────────────────────
+# NODE 1: ANALYZER NODE 
 
 def analyzer_node(state: RemediationState) -> Dict[str, Any]:
     """
@@ -80,7 +80,7 @@ def analyzer_node(state: RemediationState) -> Dict[str, Any]:
     }
 
 
-# ── NODE 2: CODER NODE ───────────────────────────────────────────────────────
+# NODE 2: CODER NODE 
 
 def coder_node(state: RemediationState) -> Dict[str, Any]:
     """
@@ -114,7 +114,7 @@ def coder_node(state: RemediationState) -> Dict[str, Any]:
     }
 
 
-# ── NODE 3: TESTER NODE ──────────────────────────────────────────────────────
+# NODE 3: TESTER NODE 
 
 def tester_node(state: RemediationState) -> Dict[str, Any]:
     """
@@ -142,7 +142,7 @@ def tester_node(state: RemediationState) -> Dict[str, Any]:
     }
 
 
-# ── NODE 4: RUNNER NODE (DOCKER SANDBOX) ─────────────────────────────────────
+# NODE 4: RUNNER NODE (DOCKER SANDBOX) 
 
 def runner_node(state: RemediationState) -> Dict[str, Any]:
     """
@@ -189,7 +189,7 @@ def runner_node(state: RemediationState) -> Dict[str, Any]:
     }
 
 
-# ── NODE 5: DEBUGGER NODE ────────────────────────────────────────────────────
+# NODE 5: DEBUGGER NODE 
 
 def debugger_node(state: RemediationState) -> Dict[str, Any]:
     """
@@ -222,7 +222,7 @@ def debugger_node(state: RemediationState) -> Dict[str, Any]:
     }
 
 
-# ── ROUTING / CIRCUIT BREAKER ────────────────────────────────────────────────
+# ROUTING / CIRCUIT BREAKER 
 
 def evaluate_test_output(state: RemediationState) -> str:
     """
@@ -244,7 +244,7 @@ def evaluate_test_output(state: RemediationState) -> str:
     return "flag_manual_review"
 
 
-# ── GRAPH CONSTRUCTION ───────────────────────────────────────────────────────
+# GRAPH CONSTRUCTION 
 
 def build_remediation_graph() -> StateGraph:
     """
@@ -286,7 +286,7 @@ def build_remediation_graph() -> StateGraph:
 remediation_graph = build_remediation_graph()
 
 
-# ── CLI & RUNNER HELPER ──────────────────────────────────────────────────────
+# CLI & RUNNER HELPER 
 
 def run_remediation_graph(raw_traceback: str) -> RemediationState:
     """
@@ -313,12 +313,25 @@ if __name__ == "__main__":
     from demo import SCENARIOS
     import sys
 
-    choice = sys.argv[1] if len(sys.argv) > 1 else "billing"
-    tb = SCENARIOS.get(choice, SCENARIOS["billing"])["traceback"]
+    choice = sys.argv[1].lower() if len(sys.argv) > 1 else "billing"
+    if choice not in SCENARIOS:
+        print("\n" + "=" * 75)
+        print("  OPSMIND AI — AVAILABLE REMEDIATION SCENARIOS")
+        print("=" * 75)
+        for key, sc in SCENARIOS.items():
+            print(f"  • {key:<12} -> {sc['name']}")
+        print("=" * 75)
+        print("  Usage:   python -m services.agent.graph <scenario>")
+        print("  Example: python -m services.agent.graph inventory\n")
+        sys.exit(1)
+
+    scenario = SCENARIOS[choice]
+    tb = scenario["traceback"]
 
     print("\n" + "=" * 75)
     print(f"  OPSMIND AI — LANGGRAPH AUTONOMOUS REMEDIATION STATE MACHINE")
-    print(f"  Executing StateGraph for scenario: {choice}")
+    print(f"  Executing StateGraph for: {scenario['name']}")
+    print(f"  Incident Description:    {scenario.get('description', '')}")
     print("=" * 75 + "\n")
 
     result = run_remediation_graph(tb)

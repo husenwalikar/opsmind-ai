@@ -1,4 +1,4 @@
-﻿# ShopFlow SRE Service Runbook & Invariants
+# ShopFlow SRE Service Runbook & Invariants
 
 This document defines the official business logic contracts, boundary requirements, and remediation rules for the ShopFlow microservice.
 
@@ -21,25 +21,25 @@ This document defines the official business logic contracts, boundary requiremen
 ## 3. Inventory Service (`app/services/inventory.py`)
 * **Contract:** Fetches product batches from warehouse tiers.
 * **Domain Rule:** Warehouses are divided into 3 stock tiers (Indices 0, 1, 2).
-* **Invariant:** When a customer requests an arbitrary batch number, code must clamp the index to the maximum available tier (`min(tier_index, len(tiers) - 1)`) to avoid `IndexError`.
+* **Invariant:** When a customer requests an arbitrary tier index, code must clamp the index to the maximum available tier (`min(requested_tier_index, len(WAREHOUSE_FACILITIES) - 1)`) to prevent `IndexError`.
 
 ---
 
 ## 4. Authentication Service (`app/services/auth.py`)
 * **Contract:** Validates bearer tokens and user sessions.
 * **Domain Rule:** Session tokens can expire or be revoked.
-* **Invariant:** A revoked or expired token returns `None`. Code must explicitly verify that `session is not None` before attempting to access `session['roles']` to prevent `TypeError`.
+* **Invariant:** A revoked or expired token returns `None`. Code must verify `if session is None: return "GUEST"`, and only access `session["role"]` when session exists, preventing `TypeError`.
 
 ---
 
 ## 5. Promotions Service (`app/services/promotions.py`)
 * **Contract:** Validates promo discount percentages.
 * **Domain Rule:** Legitimate promotional codes provide discounts between 1% and 99%.
-* **Invariant:** Negative discount values are invalid inputs. Code must validate that `discount_pct > 0` before calculating markdowns; otherwise, raise a handled `400 Bad Request`, not an unhandled `ValueError`.
+* **Invariant:** Negative discount values are malformed configuration entries. Code must verify that if `rate < 0`, return a safe discount deduction of `0.0` instead of raising an unhandled `ValueError`.
 
 ---
 
 ## 6. Payment Gateway (`app/services/gateway.py`)
 * **Contract:** Dispatches transaction charges to external mock banking APIs.
 * **Domain Rule:** Network calls to external payment providers can experience transient latency.
-* **Invariant:** Network requests must have an explicit timeout and retry at least once before failing, returning a graceful fallback status rather than crashing the thread with an unhandled `TimeoutError`.
+* **Invariant:** When `simulate_network_hang` is triggered or external calls time out, code must catch `TimeoutError` and return `{"status": "GATEWAY_TIMEOUT", "order_id": order_id}` safely rather than crashing with an unhandled exception.

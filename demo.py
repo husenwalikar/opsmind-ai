@@ -1,4 +1,4 @@
-﻿"""
+"""
 Live Demonstration Script for OpsMind AI (Steps 1 through 4).
 Runs the end-to-end autonomous diagnosis and patch generation pipeline:
   Crash Traceback -> Step 1: Parser -> Step 2: Vector RAG -> Step 3: Groq LLM -> Step 4: AST Patcher.
@@ -14,6 +14,9 @@ from services.agent.patcher import synthesize_patch
 SCENARIOS = {
     "billing": {
         "name": "Billing Service — ZeroDivisionError (FREE100 promo code)",
+        "service": "billing.py",
+        "error_type": "ZeroDivisionError",
+        "description": "100% discount voucher makes net_payable zero, causing division by zero when calculating ratio.",
         "traceback": """Traceback (most recent call last):
   File "C:/Zephyrus/Husen/Projects/opsmind-ai/test_bed/app/services/billing.py", line 25, in calculate_order_summary
     effective_ratio = round(subtotal / net_payable_base, 2)
@@ -21,10 +24,53 @@ ZeroDivisionError: float division by zero""",
     },
     "checkout": {
         "name": "Checkout Service — KeyError (Guest checkout missing shipping_address)",
+        "service": "checkout.py",
+        "error_type": "KeyError",
+        "description": "Guest checkout payload omits 'shipping_address', causing unhandled KeyError on direct dictionary lookup.",
         "traceback": """Traceback (most recent call last):
   File "C:/Zephyrus/Husen/Projects/opsmind-ai/test_bed/app/services/checkout.py", line 23, in process_order_checkout
     shipping_destination = customer_payload["shipping_address"]
 KeyError: 'shipping_address'""",
+    },
+    "inventory": {
+        "name": "Inventory Service — IndexError (Out-of-bounds warehouse tier index)",
+        "service": "inventory.py",
+        "error_type": "IndexError",
+        "description": "Fulfillment tier index 5 or 99 exceeds the 3 available warehouse tiers, raising IndexError.",
+        "traceback": """Traceback (most recent call last):
+  File "C:/Zephyrus/Husen/Projects/opsmind-ai/test_bed/app/services/inventory.py", line 23, in allocate_warehouse_facility
+    allocated_hub = WAREHOUSE_FACILITIES[requested_tier_index]
+IndexError: list index out of range""",
+    },
+    "auth": {
+        "name": "Authentication Service — TypeError (NoneType session subscript)",
+        "service": "auth.py",
+        "error_type": "TypeError",
+        "description": "Expired or missing bearer token resolves to None, causing TypeError on session['role'] access.",
+        "traceback": """Traceback (most recent call last):
+  File "C:/Zephyrus/Husen/Projects/opsmind-ai/test_bed/app/services/auth.py", line 34, in verify_user_permissions
+    user_role = session["role"]
+TypeError: 'NoneType' object is not subscriptable""",
+    },
+    "promotions": {
+        "name": "Promotions Service — ValueError (Malformed negative percentage campaign)",
+        "service": "promotions.py",
+        "error_type": "ValueError",
+        "description": "Corrupted promotional rate with negative percentage raises unhandled ValueError instead of safe deduction.",
+        "traceback": """Traceback (most recent call last):
+  File "C:/Zephyrus/Husen/Projects/opsmind-ai/test_bed/app/services/promotions.py", line 31, in evaluate_coupon_discount
+    raise ValueError(f"Invalid promotional rate configured for campaign: {rate}%")
+ValueError: Invalid promotional rate configured for campaign: -50.0%""",
+    },
+    "gateway": {
+        "name": "Payment Gateway — TimeoutError (Upstream merchant bank network hang)",
+        "service": "gateway.py",
+        "error_type": "TimeoutError",
+        "description": "Upstream bank latency raises unhandled TimeoutError, failing transaction without fallback payload.",
+        "traceback": """Traceback (most recent call last):
+  File "C:/Zephyrus/Husen/Projects/opsmind-ai/test_bed/app/services/gateway.py", line 25, in dispatch_card_charge
+    raise TimeoutError("Upstream payment network gateway timed out after 3000ms")
+TimeoutError: Upstream payment network gateway timed out after 3000ms""",
     },
 }
 
