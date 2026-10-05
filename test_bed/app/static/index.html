@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ShopFlow — India's Fastest Delivery</title>
+  <title>ShopFlow — India's Fastest Tech Delivery</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -12,29 +12,34 @@
     .gradient-hero { background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 40%, #2563eb 70%, #3b82f6 100%); }
     .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
     .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
-    .drawer-open { transform: translateX(0); }
     .inj-btn { font-size: 11px; font-family: monospace; padding: 5px 10px; border-radius: 6px; border-width: 1px; transition: all 0.15s; cursor: pointer; }
-    .star { color: #f59e0b; }
     .badge-sale { background: linear-gradient(135deg, #ef4444, #dc2626); }
     .search-bar:focus { outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,0.3); }
     ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: #f1f5f9; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
     .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    @keyframes slideIn { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .toast-anim { animation: slideIn 0.25s ease-out; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen">
 
+<!-- Toast Notification Container -->
+<div id="toast-container" class="fixed top-4 right-4 z-[70] flex flex-col gap-2 pointer-events-none"></div>
+
 <!-- Top Announcement Bar -->
-<div class="bg-blue-700 text-white text-center py-1.5 text-xs font-medium tracking-wide">
-  🚀 Free delivery on orders above ₹499 · Use code <strong>SAVE10</strong> for 10% off your first order
+<div class="bg-blue-700 text-white text-center py-1.5 text-xs font-medium tracking-wide flex items-center justify-center gap-2">
+  <span>🚀 Free delivery on orders above ₹499 · Use code <strong class="underline cursor-pointer hover:text-blue-200" onclick="quickApplyCoupon('SAVE10')">SAVE10</strong> for 10% off</span>
+  <span class="text-blue-300">|</span>
+  <button onclick="openOffersModal()" class="text-xs text-blue-200 hover:text-white underline font-semibold">View All Offers</button>
 </div>
 
 <!-- Main Header -->
 <header class="bg-white border-b sticky top-0 z-40 shadow-sm">
   <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
     <!-- Logo -->
-    <div class="flex items-center gap-2 flex-shrink-0">
-      <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+    <div class="flex items-center gap-2 flex-shrink-0 cursor-pointer" onclick="resetFilters()">
+      <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
         <span class="text-white font-bold text-sm">SF</span>
       </div>
       <div>
@@ -50,8 +55,10 @@
     <div class="flex-1 max-w-xl hidden sm:block">
       <div class="relative">
         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-        <input type="text" placeholder="Search products, brands, categories..."
-          class="search-bar w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:bg-white transition"/>
+        <input id="search-input" type="text" placeholder="Search products, categories, SKU..."
+          oninput="handleSearch(this.value)"
+          class="search-bar w-full pl-9 pr-9 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:bg-white transition"/>
+        <button id="clear-search-btn" onclick="clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm">✕</button>
       </div>
     </div>
 
@@ -61,8 +68,10 @@
         <span class="text-lg">👤</span>
         <span>Account</span>
       </button>
-      <button class="hidden sm:flex flex-col items-center text-gray-500 hover:text-blue-600 transition text-xs">
-        <span class="text-lg">❤️</span>
+      <button onclick="openWishlistModal()" class="hidden sm:flex flex-col items-center text-gray-500 hover:text-blue-600 transition text-xs relative">
+        <span class="text-lg relative">❤️
+          <span id="wishlist-badge" class="hidden absolute -top-1 -right-2 bg-rose-500 text-white text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold">0</span>
+        </span>
         <span>Wishlist</span>
       </button>
       <button onclick="openCart()" class="flex flex-col items-center text-gray-500 hover:text-blue-600 transition text-xs relative">
@@ -71,7 +80,17 @@
         </span>
         <span>Cart</span>
       </button>
-      <button onclick="toggleDevPanel()" class="text-[10px] text-gray-300 hover:text-gray-500 transition font-mono">DevOps ⚙</button>
+      <button onclick="toggleDevPanel()" class="text-[10px] text-gray-400 hover:text-blue-600 transition font-mono border border-gray-200 px-2 py-1 rounded-lg hover:border-blue-400">DevOps ⚙</button>
+    </div>
+  </div>
+
+  <!-- Mobile Search Bar (Visible on mobile screens) -->
+  <div class="px-4 pb-2.5 sm:hidden">
+    <div class="relative">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">🔍</span>
+      <input id="mobile-search-input" type="text" placeholder="Search products..."
+        oninput="handleSearch(this.value)"
+        class="search-bar w-full pl-8 pr-4 py-2 border border-gray-200 rounded-xl text-xs bg-gray-50 focus:bg-white"/>
     </div>
   </div>
 
@@ -89,20 +108,20 @@
 </header>
 
 <!-- DevOps Control Panel -->
-<div id="dev-panel" class="hidden bg-slate-950 text-white border-b border-slate-800">
+<div id="dev-panel" class="hidden bg-slate-950 text-white border-b border-slate-800 transition-all">
   <div class="max-w-7xl mx-auto px-4 py-3">
     <div class="flex items-center justify-between mb-2">
       <div class="flex items-center gap-2">
         <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
         <p class="text-[11px] text-slate-400 font-mono uppercase tracking-widest">Fault Injection Console · Cluster: BLR-Node-1</p>
       </div>
-      <span class="text-[10px] text-slate-600 font-mono">OpsMind AI Monitoring Active</span>
+      <span class="text-[10px] text-slate-400 font-mono">OpsMind AI Monitoring Active</span>
     </div>
     <div class="flex flex-wrap gap-2">
       <button onclick="inject('billing')"    class="inj-btn bg-red-950/80 text-red-300 border-red-800 hover:bg-red-900">💥 ZeroDivisionError (FREE100)</button>
       <button onclick="inject('checkout')"   class="inj-btn bg-amber-950/80 text-amber-300 border-amber-800 hover:bg-amber-900">🔑 KeyError (Guest Checkout)</button>
       <button onclick="inject('inventory')"  class="inj-btn bg-yellow-950/80 text-yellow-300 border-yellow-800 hover:bg-yellow-900">📦 IndexError (Tier 99)</button>
-      <button onclick="inject('auth')"       class="inj-btn bg-purple-950/80 text-purple-300 border-purple-800 hover:bg-purple-900">🔐 TokenExpiredError (Session)</button>
+      <button onclick="inject('auth')"       class="inj-btn bg-purple-950/80 text-purple-300 border-purple-800 hover:bg-purple-900">🔐 TypeError (Session Auth)</button>
       <button onclick="inject('promotions')" class="inj-btn bg-rose-950/80 text-rose-300 border-rose-800 hover:bg-rose-900">🏷️ ValueError (Coupon Rate)</button>
       <button onclick="inject('gateway')"    class="inj-btn bg-blue-950/80 text-blue-300 border-blue-800 hover:bg-blue-900">⏱️ TimeoutError (Gateway)</button>
       <button onclick="storm()"              class="inj-btn bg-indigo-900 text-indigo-200 border-indigo-700 hover:bg-indigo-800 font-semibold">⚡ Traffic Burst (100×)</button>
@@ -133,8 +152,8 @@
           class="bg-white text-blue-700 font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-blue-50 transition shadow-lg">
           Shop Now →
         </button>
-        <button class="border border-white/30 text-white px-5 py-2.5 rounded-xl text-sm hover:bg-white/10 transition">
-          View Offers
+        <button onclick="openOffersModal()" class="border border-white/30 text-white px-5 py-2.5 rounded-xl text-sm hover:bg-white/10 transition">
+          View Offers 🏷️
         </button>
       </div>
     </div>
@@ -170,18 +189,18 @@
 
 <!-- Product Catalog -->
 <main id="catalog" class="max-w-7xl mx-auto px-4 py-8">
-  <div class="flex items-center justify-between mb-6">
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
     <div>
       <h2 class="text-xl font-bold text-gray-900" id="catalog-title">Featured Products</h2>
       <p class="text-gray-400 text-sm mt-0.5" id="catalog-sub">Direct from Bangalore Fulfillment Centers</p>
     </div>
-    <div class="flex items-center gap-2 text-sm text-gray-500">
-      <span id="product-count" class="text-gray-400 text-xs"></span>
-      <select class="border rounded-lg px-2 py-1.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <option>Sort: Featured</option>
-        <option>Price: Low to High</option>
-        <option>Price: High to Low</option>
-        <option>Top Rated</option>
+    <div class="flex items-center gap-3 text-sm text-gray-500">
+      <span id="product-count" class="text-gray-400 text-xs font-medium"></span>
+      <select id="sort-select" onchange="handleSort(this.value)" class="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="featured">Sort: Featured</option>
+        <option value="price-asc">Price: Low to High</option>
+        <option value="price-desc">Price: High to Low</option>
+        <option value="rating-desc">Top Rated</option>
       </select>
     </div>
   </div>
@@ -203,32 +222,45 @@
 <div id="overlay" onclick="closeCart()" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50"></div>
 
 <!-- Cart Drawer -->
-<aside id="drawer" class="fixed right-0 top-0 h-full w-96 bg-white z-50 flex flex-col shadow-2xl transition-transform duration-300 translate-x-full">
-  <div class="px-6 py-4 border-b flex justify-between items-center">
+<aside id="drawer" class="fixed right-0 top-0 h-full w-96 max-w-full bg-white z-50 flex flex-col shadow-2xl transition-transform duration-300 translate-x-full">
+  <div class="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
     <div>
       <h2 class="font-bold text-gray-900 text-lg">Shopping Cart</h2>
       <p class="text-xs text-gray-400" id="cart-subtitle">0 items</p>
     </div>
-    <button onclick="closeCart()" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition text-lg">×</button>
+    <button onclick="closeCart()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white hover:bg-gray-200 text-gray-500 transition text-lg border">×</button>
   </div>
   <div id="cart-list" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
   <div class="p-5 border-t bg-gray-50 space-y-3">
     <!-- Price Summary -->
-    <div class="space-y-1.5 text-sm">
-      <div class="flex justify-between text-gray-500"><span>Subtotal</span><span id="subtotal-display">₹0</span></div>
-      <div class="flex justify-between text-green-600 text-xs"><span>Delivery</span><span>FREE</span></div>
-      <div class="flex justify-between font-bold text-gray-900 text-base border-t pt-2"><span>Total</span><span id="total">₹0</span></div>
+    <div class="space-y-1.5 text-sm bg-white p-3 rounded-xl border border-gray-100">
+      <div class="flex justify-between text-gray-500 text-xs">
+        <span>Cart Items Subtotal</span>
+        <span id="subtotal-raw">₹0</span>
+      </div>
+      <div id="discount-row" class="hidden flex justify-between text-green-600 text-xs font-medium">
+        <span id="discount-label">Promotion Discount</span>
+        <span id="discount-display">−₹0</span>
+      </div>
+      <div class="flex justify-between text-gray-500 text-xs">
+        <span>Delivery</span>
+        <span class="text-green-600 font-medium">FREE</span>
+      </div>
+      <div class="flex justify-between font-bold text-gray-900 text-base border-t pt-2 mt-1">
+        <span>Total Payable</span>
+        <span id="total" class="text-blue-600">₹0</span>
+      </div>
     </div>
     <!-- Coupon -->
     <div class="flex gap-2">
-      <input id="coupon" type="text" placeholder="Promo code (e.g. SAVE10)"
-        class="flex-1 border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-      <button onclick="applyPromo()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-3.5 rounded-lg transition">Apply</button>
+      <input id="coupon" type="text" placeholder="Promo code (SAVE10)"
+        class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-xs uppercase bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+      <button onclick="applyPromo()" class="bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold px-3.5 rounded-lg transition border border-blue-200">Apply</button>
     </div>
     <!-- Delivery Speed & Fulfillment Hub -->
     <div>
       <label class="block text-[11px] font-medium text-gray-500 mb-1">Delivery Speed & Hub</label>
-      <select id="warehouse-tier" class="w-full border rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <select id="warehouse-tier" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
         <option value="0">Standard Delivery (2-3 Days · Bangalore Central)</option>
         <option value="1">Express Dispatch (Same Day · Electronic City Hub)</option>
         <option value="2">Priority 2-Hour Dispatch (Whitefield Hub)</option>
@@ -238,7 +270,7 @@
     <!-- Payment Method -->
     <div>
       <label class="block text-[11px] font-medium text-gray-500 mb-1">Payment Method</label>
-      <select id="payment-method" class="w-full border rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <select id="payment-method" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
         <option value="card">Credit / Debit Card (Visa, MasterCard)</option>
         <option value="upi">UPI / Instant QR (PhonePe, GPay, Paytm)</option>
         <option value="bank_hang">NetBanking (Direct Bank Wire Transfer)</option>
@@ -248,7 +280,7 @@
     <div>
       <label class="block text-[11px] font-medium text-gray-500 mb-1">Delivery Destination</label>
       <input id="address" type="text" placeholder="Flat, Street, Landmark & Pincode"
-        class="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"/>
     </div>
     <button onclick="checkout()"
       class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white py-3 rounded-xl text-sm font-semibold transition shadow-sm">
@@ -258,10 +290,10 @@
   </div>
 </aside>
 
-<!-- Order Status Modal -->
+<!-- Modal Container -->
 <div id="modal" class="hidden fixed inset-0 z-60 flex items-center justify-center px-4">
   <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeModal()"></div>
-  <div id="modal-card" class="relative bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full border"></div>
+  <div id="modal-card" class="relative bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full border max-h-[90vh] overflow-y-auto"></div>
 </div>
 
 <!-- Network Event Log (Fixed Bottom Right) -->
@@ -278,7 +310,40 @@
 
 <script>
 const API = `${window.location.origin}/api`;
-let cart = [], allProducts = [], activeCategory = null;
+let cart = [];
+let allProducts = [];
+let activeCategory = null;
+let searchQuery = '';
+let currentSort = 'featured';
+let wishlist = new Set();
+let appliedPromo = null; // { code: 'SAVE10', discount: 100 }
+
+// ── Toast Notifications ──────────────────────────────────
+function showToast(msg, type='info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  const colors = {
+    success: 'bg-emerald-600 text-white border-emerald-700',
+    error: 'bg-rose-600 text-white border-rose-700',
+    warning: 'bg-amber-600 text-white border-amber-700',
+    info: 'bg-slate-900 text-white border-slate-800'
+  };
+  const icons = {
+    success: '✅',
+    error: '⚠️',
+    warning: '🔔',
+    info: 'ℹ️'
+  };
+  toast.className = `toast-anim pointer-events-auto flex items-center gap-2 px-3.5 py-2.5 rounded-xl shadow-xl text-xs font-medium border ${colors[type] || colors.info}`;
+  toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-6px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
 
 // ── Logger ──────────────────────────────────────────────
 const logEl = document.getElementById('log');
@@ -319,16 +384,30 @@ function stars(n) {
 const RATINGS = { 1:4.8, 2:4.6, 3:4.9, 4:4.7, 5:4.5, 6:4.4, 7:4.8, 8:4.3, 9:4.6, 10:4.7 };
 const REVIEWS = { 1:'2.4k', 2:'1.1k', 3:'3.8k', 4:'892', 5:'1.6k', 6:'744', 7:'2.1k', 8:'413', 9:'988', 10:'1.3k' };
 const DISCOUNT= { 1:12, 2:8, 3:15, 4:20, 5:10, 6:25, 7:18, 8:30, 9:22, 10:5 };
+const DESCRIPTIONS = {
+  1: 'Active noise cancellation headphones with 40mm dynamic drivers and 30h battery life.',
+  2: 'Retina AMOLED smartwatch with continuous SpO2, heart-rate tracking and GPS.',
+  3: 'True wireless Bluetooth 5.3 earbuds featuring immersive spatial audio and fast charge.',
+  4: 'Mechanical clicky switches, per-key RGB backlighting and aircraft-grade aluminum top plate.',
+  5: '20,000mAh dual USB-C Power Delivery 65W fast charger suitable for laptops & phones.',
+  6: 'Multi-device Bluetooth optical mouse with hyper-fast scroll wheel and ergonomic grip.',
+  7: '4K Ultra-HD streaming camera with AI auto-focus and dual stereo noise-reducing mics.',
+  8: 'Dual-frequency haptic triggers with wireless Bluetooth & 2.4GHz PC dongle support.',
+  9: 'Thunderbolt 4 / USB-C 8-in-1 aluminum hub with 4K 60Hz HDMI and 100W pass-through.',
+  10: 'IP67 water-resistant portable Bluetooth speaker with dual passive bass radiators.'
+};
 
 async function loadProducts() {
   try {
     const {products} = await (await fetch(`${API}/products`)).json();
     allProducts = products;
-    document.getElementById('skeleton').remove();
-    renderProducts(products);
+    const skel = document.getElementById('skeleton');
+    if (skel) skel.remove();
+    applyFilters();
     slog(`GET /api/products → ${products.length} items loaded`, 'text-green-600');
   } catch {
-    document.getElementById('skeleton').remove();
+    const skel = document.getElementById('skeleton');
+    if (skel) skel.remove();
     document.getElementById('grid').innerHTML = `
       <div class="col-span-full text-center py-16">
         <div class="text-5xl mb-4">⚠️</div>
@@ -341,57 +420,34 @@ async function loadProducts() {
   }
 }
 
-function renderProducts(products) {
-  const grid = document.getElementById('grid');
-  document.getElementById('product-count').textContent = `${products.length} products`;
-  grid.classList.remove('hidden');
-  if (!products.length) {
-    grid.innerHTML = `<div class="col-span-full text-center py-16 text-gray-400">No products in this category.</div>`;
-    return;
+// ── Filtering, Sorting & Search ──────────────────────────
+function handleSearch(q) {
+  searchQuery = q.trim().toLowerCase();
+  const clearBtn = document.getElementById('clear-search-btn');
+  if (clearBtn) {
+    q.trim() ? clearBtn.classList.remove('hidden') : clearBtn.classList.add('hidden');
   }
-  grid.innerHTML = products.map(p => {
-    const rating = RATINGS[p.id] || 4.5;
-    const reviews = REVIEWS[p.id] || '500';
-    const disc = DISCOUNT[p.id] || 10;
-    const origPrice = Math.round(p.price / (1 - disc/100));
-    return `
-    <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden card-hover cursor-pointer flex flex-col" onclick="">
-      <!-- Product Image Area -->
-      <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-6 flex items-center justify-center h-40 relative">
-        <span class="text-6xl">${p.emoji}</span>
-        <span class="absolute top-3 left-3 badge-sale text-white text-[10px] font-bold px-2 py-0.5 rounded-full">${disc}% OFF</span>
-        ${p.stock < 10 ? `<span class="absolute top-3 right-3 bg-orange-100 text-orange-600 text-[10px] font-semibold px-2 py-0.5 rounded-full">Only ${p.stock} left</span>` : ''}
-      </div>
-      <!-- Product Info -->
-      <div class="p-4 flex flex-col flex-1">
-        <p class="text-[10px] text-blue-600 font-semibold uppercase tracking-wider mb-1">${p.category}</p>
-        <h3 class="font-semibold text-sm text-gray-800 leading-snug mb-2 flex-1">${p.name}</h3>
-        <!-- Ratings -->
-        <div class="flex items-center gap-1.5 mb-3">
-          <div class="flex text-sm">${stars(rating)}</div>
-          <span class="text-xs font-semibold text-gray-700">${rating}</span>
-          <span class="text-xs text-gray-400">(${reviews} reviews)</span>
-        </div>
-        <!-- Price -->
-        <div class="flex items-end justify-between">
-          <div>
-            <div class="flex items-baseline gap-1.5">
-              <span class="font-bold text-gray-900 text-base">₹${Number(p.price).toLocaleString('en-IN')}</span>
-            </div>
-            <span class="text-xs text-gray-400 line-through">₹${Number(origPrice).toLocaleString('en-IN')}</span>
-          </div>
-          <button onclick='event.stopPropagation(); add(${JSON.stringify(p)})'
-            class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow-sm">
-            + Cart
-          </button>
-        </div>
-        <!-- Delivery Promise -->
-        <p class="text-[10px] text-green-600 font-medium mt-2 flex items-center gap-1">
-          🚚 Free delivery · Arrives in 2 hours
-        </p>
-      </div>
-    </div>`;
-  }).join('');
+  const mob = document.getElementById('mobile-search-input');
+  const dsk = document.getElementById('search-input');
+  if (mob && mob.value !== q) mob.value = q;
+  if (dsk && dsk.value !== q) dsk.value = q;
+  applyFilters();
+}
+
+function clearSearch() {
+  searchQuery = '';
+  const dsk = document.getElementById('search-input');
+  const mob = document.getElementById('mobile-search-input');
+  const clearBtn = document.getElementById('clear-search-btn');
+  if (dsk) dsk.value = '';
+  if (mob) mob.value = '';
+  if (clearBtn) clearBtn.classList.add('hidden');
+  applyFilters();
+}
+
+function handleSort(sortMode) {
+  currentSort = sortMode;
+  applyFilters();
 }
 
 function filterCat(cat) {
@@ -400,44 +456,413 @@ function filterCat(cat) {
     b.className = 'cat-btn whitespace-nowrap text-gray-500 hover:text-gray-800 pb-1 transition';
   });
   const activeId = cat ? `cat-${cat}` : 'cat-all';
-  document.getElementById(activeId).className = 'cat-btn whitespace-nowrap font-medium text-blue-600 border-b-2 border-blue-600 pb-1 transition';
-  const filtered = cat ? allProducts.filter(p => p.category === cat) : allProducts;
-  const title = cat || 'All Products';
-  document.getElementById('catalog-title').textContent = title;
-  renderProducts(filtered);
+  const el = document.getElementById(activeId);
+  if (el) el.className = 'cat-btn whitespace-nowrap font-medium text-blue-600 border-b-2 border-blue-600 pb-1 transition';
+  applyFilters();
 }
 
-// ── Cart ─────────────────────────────────────────────────
+function resetFilters() {
+  searchQuery = '';
+  activeCategory = null;
+  clearSearch();
+  filterCat(null);
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function applyFilters() {
+  let list = [...allProducts];
+
+  // Category filter
+  if (activeCategory) {
+    list = list.filter(p => p.category.toLowerCase() === activeCategory.toLowerCase());
+  }
+
+  // Search query
+  if (searchQuery) {
+    list = list.filter(p =>
+      p.name.toLowerCase().includes(searchQuery) ||
+      p.category.toLowerCase().includes(searchQuery) ||
+      (p.sku && p.sku.toLowerCase().includes(searchQuery))
+    );
+  }
+
+  // Sort
+  if (currentSort === 'price-asc') {
+    list.sort((a, b) => a.price - b.price);
+  } else if (currentSort === 'price-desc') {
+    list.sort((a, b) => b.price - a.price);
+  } else if (currentSort === 'rating-desc') {
+    list.sort((a, b) => (RATINGS[b.id] || 4.5) - (RATINGS[a.id] || 4.5));
+  } else {
+    // Featured default (original id order)
+    list.sort((a, b) => a.id - b.id);
+  }
+
+  // Header Title
+  const title = activeCategory
+    ? `${activeCategory} (${list.length})`
+    : (searchQuery ? `Search results for "${searchQuery}" (${list.length})` : 'Featured Products');
+  document.getElementById('catalog-title').textContent = title;
+
+  renderProducts(list);
+}
+
+function renderProducts(products) {
+  const grid = document.getElementById('grid');
+  document.getElementById('product-count').textContent = `${products.length} product${products.length === 1 ? '' : 's'}`;
+  grid.classList.remove('hidden');
+
+  if (!products.length) {
+    grid.innerHTML = `
+      <div class="col-span-full text-center py-16 text-gray-400 bg-white rounded-2xl border border-dashed border-gray-200">
+        <div class="text-4xl mb-2">🔍</div>
+        <p class="font-medium text-gray-700">No products match your criteria</p>
+        <p class="text-xs text-gray-400 mt-1">Try clearing filters or searching for something else.</p>
+        <button onclick="resetFilters()" class="mt-4 px-4 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-100 transition">Reset All Filters</button>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = products.map(p => {
+    const rating = RATINGS[p.id] || 4.5;
+    const reviews = REVIEWS[p.id] || '500';
+    const disc = DISCOUNT[p.id] || 10;
+    const origPrice = Math.round(p.price / (1 - disc/100));
+    const isWished = wishlist.has(p.id);
+
+    return `
+    <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden card-hover cursor-pointer flex flex-col relative group" onclick="openProductModal(${p.id})">
+      <!-- Product Image Area -->
+      <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-6 flex items-center justify-center h-44 relative">
+        <span class="text-6xl select-none group-hover:scale-110 transition duration-200">${p.emoji}</span>
+        <span class="absolute top-3 left-3 badge-sale text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">${disc}% OFF</span>
+        <button onclick="event.stopPropagation(); toggleWishlist(${p.id})"
+          class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center text-sm shadow-sm transition border border-gray-100">
+          <span class="${isWished ? 'text-rose-500 scale-110' : 'text-gray-400'}">${isWished ? '❤️' : '🤍'}</span>
+        </button>
+      </div>
+
+      <!-- Product Info -->
+      <div class="p-4 flex flex-col flex-1">
+        <div class="flex items-center justify-between mb-1">
+          <p class="text-[10px] text-blue-600 font-semibold uppercase tracking-wider">${p.category}</p>
+          <span class="text-[10px] font-mono text-gray-400">${p.sku}</span>
+        </div>
+        <h3 class="font-semibold text-sm text-gray-800 leading-snug mb-1.5 flex-1">${p.name}</h3>
+
+        <!-- Ratings -->
+        <div class="flex items-center gap-1.5 mb-3">
+          <div class="flex text-sm">${stars(rating)}</div>
+          <span class="text-xs font-semibold text-gray-700">${rating}</span>
+          <span class="text-xs text-gray-400">(${reviews})</span>
+        </div>
+
+        <!-- Price -->
+        <div class="flex items-end justify-between pt-2 border-t border-gray-50">
+          <div>
+            <div class="flex items-baseline gap-1.5">
+              <span class="font-bold text-gray-900 text-base">₹${Number(p.price).toLocaleString('en-IN')}</span>
+            </div>
+            <span class="text-xs text-gray-400 line-through">₹${Number(origPrice).toLocaleString('en-IN')}</span>
+          </div>
+          <button onclick='event.stopPropagation(); add(${JSON.stringify(p)})'
+            class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow-sm flex items-center gap-1">
+            <span>+</span> <span>Cart</span>
+          </button>
+        </div>
+
+        <!-- Stock and Delivery Promise -->
+        <div class="mt-2.5 pt-2 border-t border-gray-50 flex items-center justify-between text-[10px]">
+          <span class="text-green-600 font-medium">🚚 2hr Dispatch</span>
+          <span class="text-gray-400 font-mono">${p.stock} in stock</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Product Quick View Modal ──────────────────────────────
+function openProductModal(id) {
+  const p = allProducts.find(item => item.id === id);
+  if (!p) return;
+  const rating = RATINGS[p.id] || 4.5;
+  const reviews = REVIEWS[p.id] || '500';
+  const disc = DISCOUNT[p.id] || 10;
+  const origPrice = Math.round(p.price / (1 - disc/100));
+  const desc = DESCRIPTIONS[p.id] || 'High quality tech device built for top tier performance and everyday durability.';
+  const isWished = wishlist.has(p.id);
+
+  document.getElementById('modal-card').innerHTML = `
+    <div>
+      <div class="flex justify-between items-start mb-3">
+        <span class="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full uppercase tracking-wider">${p.category}</span>
+        <button onclick="closeModal()" class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold text-sm">✕</button>
+      </div>
+
+      <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-8 rounded-2xl flex items-center justify-center mb-4 relative">
+        <span class="text-7xl">${p.emoji}</span>
+        <span class="absolute top-3 left-3 badge-sale text-white text-[10px] font-bold px-2 py-0.5 rounded-full">${disc}% OFF</span>
+      </div>
+
+      <h2 class="text-lg font-bold text-gray-900 leading-snug mb-1">${p.name}</h2>
+      <p class="text-[11px] font-mono text-gray-400 mb-3">SKU: ${p.sku} · Hub: Bangalore BLR-1</p>
+
+      <div class="flex items-center gap-2 mb-3">
+        <div class="flex text-sm">${stars(rating)}</div>
+        <span class="text-xs font-bold text-gray-800">${rating} / 5.0</span>
+        <span class="text-xs text-gray-400">(${reviews} customer reviews)</span>
+      </div>
+
+      <p class="text-xs text-gray-600 leading-relaxed mb-4">
+        ${desc}
+      </p>
+
+      <div class="bg-gray-50 rounded-xl p-3.5 border border-gray-100 mb-5 flex items-center justify-between">
+        <div>
+          <span class="text-xs text-gray-400 block line-through">₹${Number(origPrice).toLocaleString('en-IN')}</span>
+          <span class="text-xl font-bold text-gray-900">₹${Number(p.price).toLocaleString('en-IN')}</span>
+        </div>
+        <div class="text-right">
+          <span class="inline-block text-[10px] bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full mb-0.5">● Ready to Dispatch</span>
+          <p class="text-[10px] text-gray-400">${p.stock} units available</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick='add(${JSON.stringify(p)}); closeModal();'
+          class="bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white py-2.5 rounded-xl text-xs font-semibold transition shadow-sm flex items-center justify-center gap-1.5">
+          <span>🛒 Add to Cart</span>
+        </button>
+        <button onclick="toggleWishlist(${p.id}); openProductModal(${p.id});"
+          class="border border-gray-200 hover:bg-gray-50 text-gray-700 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5">
+          <span>${isWished ? '❤️ In Wishlist' : '🤍 Add to Wishlist'}</span>
+        </button>
+      </div>
+    </div>`;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+// ── Wishlist ─────────────────────────────────────────────
+function toggleWishlist(productId) {
+  const p = allProducts.find(item => item.id === productId);
+  if (!p) return;
+  if (wishlist.has(productId)) {
+    wishlist.delete(productId);
+    showToast(`Removed "${p.name.slice(0, 24)}..." from Wishlist`, 'info');
+  } else {
+    wishlist.add(productId);
+    showToast(`Saved "${p.name.slice(0, 24)}..." to Wishlist ❤️`, 'success');
+  }
+  updateWishlistBadge();
+  applyFilters();
+}
+
+function updateWishlistBadge() {
+  const badge = document.getElementById('wishlist-badge');
+  if (badge) {
+    if (wishlist.size > 0) {
+      badge.textContent = wishlist.size;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  }
+}
+
+function openWishlistModal() {
+  const items = allProducts.filter(p => wishlist.has(p.id));
+  document.getElementById('modal-card').innerHTML = `
+    <div>
+      <div class="flex justify-between items-center mb-4 pb-2 border-b">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">❤️</span>
+          <h2 class="text-base font-bold text-gray-900">Your Saved Wishlist</h2>
+        </div>
+        <button onclick="closeModal()" class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold text-sm">✕</button>
+      </div>
+
+      ${items.length === 0 ? `
+        <div class="text-center py-10">
+          <div class="text-4xl mb-2">🤍</div>
+          <p class="font-medium text-gray-700 text-sm">Your wishlist is empty</p>
+          <p class="text-xs text-gray-400 mt-1">Tap the heart on any product card to save items for later.</p>
+          <button onclick="closeModal()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-700 transition">Browse Products</button>
+        </div>
+      ` : `
+        <div class="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+          ${items.map(p => `
+            <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl border border-gray-100">
+              <div class="flex items-center gap-3">
+                <span class="text-2xl">${p.emoji}</span>
+                <div>
+                  <h4 class="text-xs font-semibold text-gray-800 leading-tight">${p.name}</h4>
+                  <p class="text-xs font-bold text-blue-600">₹${Number(p.price).toLocaleString('en-IN')}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button onclick='add(${JSON.stringify(p)}); toggleWishlist(${p.id}); openWishlistModal();'
+                  class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition">
+                  + Cart
+                </button>
+                <button onclick="toggleWishlist(${p.id}); openWishlistModal();"
+                  class="text-gray-400 hover:text-red-500 text-sm p-1">
+                  ✕
+                </button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `}
+    </div>`;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+// ── Offers Modal ─────────────────────────────────────────
+function openOffersModal() {
+  document.getElementById('modal-card').innerHTML = `
+    <div>
+      <div class="flex justify-between items-center mb-4 pb-2 border-b">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🏷️</span>
+          <h2 class="text-base font-bold text-gray-900">Available Promotions & Vouchers</h2>
+        </div>
+        <button onclick="closeModal()" class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold text-sm">✕</button>
+      </div>
+
+      <div class="space-y-3">
+        <!-- SAVE10 -->
+        <div class="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-mono font-bold text-blue-700 text-sm bg-white px-2 py-0.5 rounded border border-blue-300">SAVE10</span>
+              <span class="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold">10% OFF</span>
+            </div>
+            <p class="text-xs text-gray-600">Get 10% instant discount on any cart order. No minimum purchase required.</p>
+          </div>
+          <button onclick="quickApplyCoupon('SAVE10')" class="ml-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-2 rounded-lg transition whitespace-nowrap shadow-sm">
+            Apply
+          </button>
+        </div>
+
+        <!-- FREE100 (Demo Fault) -->
+        <div class="p-3.5 bg-rose-50/70 border border-rose-200 rounded-xl flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-mono font-bold text-rose-700 text-sm bg-white px-2 py-0.5 rounded border border-rose-300">FREE100</span>
+              <span class="text-[10px] bg-rose-600 text-white px-2 py-0.5 rounded-full font-bold">100% OFF</span>
+            </div>
+            <p class="text-xs text-gray-600">Full order waiver voucher. <span class="text-rose-600 font-semibold">[Demo: triggers ZeroDivisionError calculation crash]</span></p>
+          </div>
+          <button onclick="quickApplyCoupon('FREE100')" class="ml-3 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-3 py-2 rounded-lg transition whitespace-nowrap shadow-sm">
+            Apply
+          </button>
+        </div>
+
+        <!-- MALFORMED_MINUS50 (Demo Fault) -->
+        <div class="p-3.5 bg-purple-50/70 border border-purple-200 rounded-xl flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-mono font-bold text-purple-700 text-sm bg-white px-2 py-0.5 rounded border border-purple-300">MALFORMED_MINUS50</span>
+            </div>
+            <p class="text-xs text-gray-600">Malformed discount rate coupon. <span class="text-purple-600 font-semibold">[Demo: triggers ValueError coupon rate crash]</span></p>
+          </div>
+          <button onclick="quickApplyCoupon('MALFORMED_MINUS50')" class="ml-3 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold px-3 py-2 rounded-lg transition whitespace-nowrap shadow-sm">
+            Apply
+          </button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function quickApplyCoupon(code) {
+  closeModal();
+  document.getElementById('coupon').value = code;
+  openCart();
+  applyPromo();
+}
+
+// ── Cart Operations ──────────────────────────────────────
 function add(p) {
   const e = cart.find(i => i.p.id === p.id);
   e ? e.q++ : cart.push({p, q: 1});
   renderCart();
+  showToast(`Added "${p.name}" to cart`, 'success');
   slog(`CART: Added "${p.name.slice(0,30)}"`, 'text-green-600');
-  // Pulse the cart button
+
+  // Pulse the cart badge
   const badge = document.getElementById('badge');
   badge.classList.add('scale-125');
   setTimeout(() => badge.classList.remove('scale-125'), 200);
 }
 
-function remove(i) { cart.splice(i, 1); renderCart(); }
+function remove(i) {
+  const name = cart[i].p.name;
+  cart.splice(i, 1);
+  if (cart.length === 0) appliedPromo = null;
+  renderCart();
+  showToast(`Removed "${name}" from cart`, 'info');
+}
+
 function updateQty(i, delta) {
   cart[i].q += delta;
-  if (cart[i].q <= 0) cart.splice(i, 1);
+  if (cart[i].q <= 0) {
+    cart.splice(i, 1);
+  }
+  if (cart.length === 0) appliedPromo = null;
   renderCart();
 }
 
+function removePromo() {
+  appliedPromo = null;
+  document.getElementById('coupon').value = '';
+  renderCart();
+  showToast('Coupon removed', 'info');
+}
+
 function renderCart() {
-  const tot = cart.reduce((s,i) => s + i.p.price * i.q, 0);
+  const rawSubtotal = cart.reduce((s,i) => s + i.p.price * i.q, 0);
   const cnt = cart.reduce((s,i) => s + i.q, 0);
-  document.getElementById('total').textContent = `₹${tot.toLocaleString('en-IN')}`;
-  document.getElementById('subtotal-display').textContent = `₹${tot.toLocaleString('en-IN')}`;
+
+  // Calculate discount if promo is active
+  let discountAmount = 0;
+  if (appliedPromo && rawSubtotal > 0) {
+    if (appliedPromo.code === 'SAVE10') {
+      discountAmount = Math.round(rawSubtotal * 0.10);
+    } else if (appliedPromo.discount !== undefined) {
+      discountAmount = Math.min(rawSubtotal, appliedPromo.discount);
+    }
+  }
+
+  const finalTotal = Math.max(0, rawSubtotal - discountAmount);
+
+  // Subtotal & Discount displays
+  const rawEl = document.getElementById('subtotal-raw');
+  if (rawEl) rawEl.textContent = `₹${rawSubtotal.toLocaleString('en-IN')}`;
+
+  const discRow = document.getElementById('discount-row');
+  const discLbl = document.getElementById('discount-label');
+  const discDsp = document.getElementById('discount-display');
+  if (discRow && discLbl && discDsp) {
+    if (appliedPromo && discountAmount > 0) {
+      discRow.classList.remove('hidden');
+      discLbl.innerHTML = `Coupon <span class="font-mono font-bold text-green-700">(${appliedPromo.code})</span> <button onclick="removePromo()" class="text-rose-500 hover:text-rose-700 underline text-[10px] ml-1">Remove</button>`;
+      discDsp.textContent = `−₹${discountAmount.toLocaleString('en-IN')}`;
+    } else {
+      discRow.classList.add('hidden');
+    }
+  }
+
+  document.getElementById('total').textContent = `₹${finalTotal.toLocaleString('en-IN')}`;
   document.getElementById('cart-subtitle').textContent = `${cnt} item${cnt !== 1 ? 's' : ''}`;
+
   const b = document.getElementById('badge');
   cnt > 0 ? (b.textContent = cnt, b.classList.remove('hidden')) : b.classList.add('hidden');
+
   const el = document.getElementById('cart-list');
   el.innerHTML = cart.length ? cart.map((i,idx) => `
     <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
-      <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl border">${i.p.emoji}</div>
+      <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl border shadow-sm">${i.p.emoji}</div>
       <div class="flex-1 min-w-0">
         <p class="font-medium text-xs text-gray-800 truncate leading-tight">${i.p.name}</p>
         <p class="text-blue-600 text-xs font-semibold mt-0.5">₹${Number(i.p.price).toLocaleString('en-IN')}</p>
@@ -462,44 +887,60 @@ function closeCart() { document.getElementById('drawer').classList.replace('tran
 // ── Promo Voucher Application ────────────────────────────
 async function applyPromo() {
   const code = document.getElementById('coupon').value.trim().toUpperCase();
-  if (!code) { slog('WARN: Enter a promo code first', 'text-amber-500'); return; }
-  slog(`POST /api/promotions/apply [Coupon: ${code}]`, 'text-blue-600 font-medium');
+  if (!code) {
+    showToast('Please enter a promo code first', 'warning');
+    slog('WARN: Enter a promo code first', 'text-amber-500');
+    return;
+  }
+  const rawSubtotal = cart.reduce((s,i) => s + i.p.price * i.q, 0);
+  const baseAmount = rawSubtotal > 0 ? rawSubtotal : 1000.0;
+
+  slog(`POST /api/promotions/apply [Coupon: ${code}, Base: ₹${baseAmount}]`, 'text-blue-600 font-medium');
   try {
     const res = await fetch(`${API}/promotions/apply`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ coupon_code: code, base_amount: 1000 })
+      body: JSON.stringify({ coupon_code: code, base_amount: baseAmount })
     });
     const data = await res.json();
     if (res.ok) {
+      appliedPromo = { code: code, discount: data.discount };
+      renderCart();
+      showToast(`Coupon "${code}" applied: ₹${data.discount} discount!`, 'success');
       slog(`HTTP 200: Coupon valid — discount rate applied (₹${data.discount})`, 'text-green-600 font-semibold');
-      const disp = document.getElementById('subtotal-display');
-      disp.innerHTML = `${disp.textContent} <span class="text-green-600 font-normal">(-₹${data.discount} coupon)</span>`;
     } else {
       slog(`HTTP 500: ${data.error_type} in promotions engine`, 'text-red-500 font-semibold');
       showError(data);
     }
-  } catch(e) { slog(`NET_ERR: ${e.message}`, 'text-red-500'); }
+  } catch(e) {
+    showToast(`Network Error: ${e.message}`, 'error');
+    slog(`NET_ERR: ${e.message}`, 'text-red-500');
+  }
 }
 
 // ── Checkout ─────────────────────────────────────────────
 async function checkout() {
-  if (!cart.length) { slog('WARN: Cart is empty', 'text-amber-500'); return; }
+  if (!cart.length) {
+    showToast('Your cart is empty. Add products before placing order.', 'warning');
+    slog('WARN: Cart is empty', 'text-amber-500');
+    return;
+  }
   const addr = document.getElementById('address').value.trim();
-  const code = document.getElementById('coupon').value.trim().toUpperCase() || null;
+  const code = (document.getElementById('coupon').value.trim().toUpperCase()) || (appliedPromo ? appliedPromo.code : null);
   const tier = parseInt(document.getElementById('warehouse-tier')?.value || '0', 10);
   const paymentMethod = document.getElementById('payment-method')?.value || 'card';
+  const rawSubtotal = cart.reduce((s,i) => s + i.p.price * i.q, 0);
 
   closeCart();
 
-  // If user selected bank hang, trigger gateway timeout simulation
+  // If user selected bank wire hang, trigger gateway timeout simulation
   if (paymentMethod === 'bank_hang') {
     slog(`POST /api/payment/charge [Simulate Gateway Hang]`, 'text-blue-600 font-medium');
     try {
       const res = await fetch(`${API}/payment/charge`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ order_id: 'ORD-TIMEOUT-DEMO', amount: 1200, simulate_network_hang: true })
+        body: JSON.stringify({ order_id: 'ORD-TIMEOUT-DEMO', amount: rawSubtotal, simulate_network_hang: true })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -510,7 +951,7 @@ async function checkout() {
     return;
   }
 
-  slog(`POST /api/checkout${code ? ` [Coupon: ${code}]` : ''} [Tier: ${tier}]`, 'text-blue-600 font-medium');
+  slog(`POST /api/checkout${code ? ` [Coupon: ${code}]` : ''} [Tier: ${tier}] [Subtotal: ₹${rawSubtotal}]`, 'text-blue-600 font-medium');
   try {
     const res = await fetch(`${API}/checkout`, {
       method: 'POST',
@@ -518,18 +959,25 @@ async function checkout() {
       body: JSON.stringify({
         coupon_code: code,
         customer_payload: addr ? {shipping_address: addr} : {},
-        warehouse_tier: tier
+        warehouse_tier: tier,
+        subtotal: rawSubtotal
       })
     });
     const data = await res.json();
     if (res.ok) {
       slog(`HTTP 200: ${data.order.order_id} confirmed (₹${data.billing.total_payable})`, 'text-green-600');
-      showSuccess(data); cart = []; renderCart();
+      showSuccess(data);
+      cart = [];
+      appliedPromo = null;
+      renderCart();
     } else {
       slog(`HTTP 500: ${data.error_type}`, 'text-red-500 font-semibold');
       showError(data);
     }
-  } catch(e) { slog(`NET_ERR: ${e.message}`, 'text-red-500'); }
+  } catch(e) {
+    showToast(`Network Error: ${e.message}`, 'error');
+    slog(`NET_ERR: ${e.message}`, 'text-red-500');
+  }
 }
 
 // ── Account / Session Modal ──────────────────────────────
@@ -582,18 +1030,22 @@ async function verifySessionAuth() {
     const data = await res.json();
     if (res.ok) {
       slog(`HTTP 200: Session authenticated (${data.role})`, 'text-green-600');
+      showToast('Membership session refreshed successfully', 'success');
     } else {
       slog(`HTTP 500: ${data.error_type} in auth service`, 'text-red-500 font-semibold');
       showError(data);
     }
-  } catch(e) { slog(`NET_ERR: ${e.message}`, 'text-red-500'); }
+  } catch(e) {
+    showToast(`Network Error: ${e.message}`, 'error');
+    slog(`NET_ERR: ${e.message}`, 'text-red-500');
+  }
 }
 
-// ── Modals ───────────────────────────────────────────────
+// ── Modals & Customer Error Handling ─────────────────────
 function showSuccess(d) {
   document.getElementById('modal-card').innerHTML = `
     <div class="text-center">
-      <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-200">
         <span class="text-3xl">✅</span>
       </div>
       <h2 class="text-xl font-bold text-gray-900 mb-1">Order Placed!</h2>
@@ -615,7 +1067,7 @@ const CUSTOMER_ERRORS = {
   ZeroDivisionError: {
     title: "Payment Processing Failed",
     tagline: "Promotion Calculation Error",
-    desc: "We couldn't calculate the final discount for promo code 'FREE100'. The cart total calculation failed during checkout.",
+    desc: "We couldn't calculate the final discount for promo code 'FREE100'. The cart total calculation encountered a zero-division exception during checkout.",
     action: "Modify Cart & Re-apply",
     actionFn: "closeModal(); openCart();",
     incidentCode: "SF-ERR-BILLING-CALC"
@@ -623,31 +1075,39 @@ const CUSTOMER_ERRORS = {
   KeyError: {
     title: "Shipping Information Missing",
     tagline: "Destination Address Required",
-    desc: "Unable to complete order without a confirmed shipping destination. Please enter your full delivery address.",
+    desc: "Unable to complete order without a confirmed shipping destination address. Please enter your full delivery address in checkout.",
     action: "Add Delivery Address",
     actionFn: "closeModal(); openCart();",
     incidentCode: "SF-ERR-CHECKOUT-KEY"
   },
   IndexError: {
     title: "Fulfillment Route Unavailable",
-    tagline: "Warehouse Node Unreachable",
-    desc: "The designated distribution tier is temporarily out of service. Please choose standard delivery at checkout.",
-    action: "Return to Cart",
+    tagline: "Warehouse Node Out of Bounds",
+    desc: "The designated distribution tier (Rural SpeedPost #99) is outside our active Bangalore logistics cluster index. Please select standard or express delivery.",
+    action: "Change Delivery Tier",
     actionFn: "closeModal(); openCart();",
     incidentCode: "SF-ERR-INVENTORY-TIER"
+  },
+  TypeError: {
+    title: "Session Expired",
+    tagline: "Authentication Timeout",
+    desc: "Your checkout session token has expired or is invalid ('NoneType' payload). Please refresh your credentials to renew your session.",
+    action: "Renew Session",
+    actionFn: "closeModal(); openAccountModal();",
+    incidentCode: "SF-ERR-AUTH-EXP"
   },
   TokenExpiredError: {
     title: "Session Expired",
     tagline: "Authentication Timeout",
     desc: "Your checkout session has timed out for account security. Please refresh to renew your session.",
-    action: "Refresh Session",
-    actionFn: "location.reload();",
+    action: "Renew Session",
+    actionFn: "closeModal(); openAccountModal();",
     incidentCode: "SF-ERR-AUTH-EXP"
   },
   ValueError: {
     title: "Invalid Discount Code",
     tagline: "Coupon Parameters Unrecognized",
-    desc: "This promotion cannot be applied to the current items in your cart. Please try another discount code.",
+    desc: "This promotion discount percentage is invalid or malformed. Please try another discount voucher like SAVE10.",
     action: "Change Coupon",
     actionFn: "closeModal(); openCart();",
     incidentCode: "SF-ERR-PROMO-VAL"
@@ -655,7 +1115,7 @@ const CUSTOMER_ERRORS = {
   TimeoutError: {
     title: "Gateway Connection Timeout",
     tagline: "Payment Network Delay",
-    desc: "Our payment gateway is taking longer than normal to confirm this charge. No money was deducted from your account.",
+    desc: "Our payment gateway is taking longer than normal to confirm this charge. No money was deducted from your bank account.",
     action: "Retry Checkout",
     actionFn: "closeModal(); checkout();",
     incidentCode: "SF-ERR-GATEWAY-TIMEOUT"
@@ -696,7 +1156,7 @@ function showError(d) {
           <span class="text-gray-400 block text-[10px] uppercase font-mono">Incident Ref</span>
           <span class="font-mono font-semibold text-gray-700">${correlationId}</span>
         </div>
-        <span class="text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px] font-medium">Logged to SRE</span>
+        <span class="text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px] font-medium">Captured by SRE Agent</span>
       </div>
 
       <div class="space-y-2">
@@ -742,21 +1202,21 @@ function toggleDiag() {
 
 function closeModal() { document.getElementById('modal').classList.add('hidden'); }
 
-// ── DevOps Panel ─────────────────────────────────────────
+// ── DevOps Control Panel Injections ──────────────────────
 function toggleDevPanel() { document.getElementById('dev-panel').classList.toggle('hidden'); }
 
 const SCENARIOS = {
-  billing:    {url:'/checkout',         body:{coupon_code:'FREE100',customer_payload:{shipping_address:'5th Block, Bangalore'},warehouse_tier:0}},
-  checkout:   {url:'/checkout',         body:{coupon_code:null,customer_payload:{},warehouse_tier:0}},
-  inventory:  {url:'/checkout',         body:{coupon_code:null,customer_payload:{shipping_address:'5th Block, Bangalore'},warehouse_tier:99}},
+  billing:    {url:'/checkout',         body:{coupon_code:'FREE100',customer_payload:{shipping_address:'5th Block, Bangalore'},warehouse_tier:0,subtotal:500.0}},
+  checkout:   {url:'/checkout',         body:{coupon_code:null,customer_payload:{},warehouse_tier:0,subtotal:500.0}},
+  inventory:  {url:'/checkout',         body:{coupon_code:null,customer_payload:{shipping_address:'5th Block, Bangalore'},warehouse_tier:99,subtotal:500.0}},
   auth:       {url:'/auth/verify',      body:{session_token:'EXPIRED_JWT_XYZ'}},
-  promotions: {url:'/promotions/apply', body:{coupon_code:'MALFORMED_MINUS50',base_amount:1000}},
-  gateway:    {url:'/payment/charge',   body:{order_id:'ORD-DEMO',amount:1200,simulate_network_hang:true}},
+  promotions: {url:'/promotions/apply', body:{coupon_code:'MALFORMED_MINUS50',base_amount:1000.0}},
+  gateway:    {url:'/payment/charge',   body:{order_id:'ORD-DEMO',amount:1200.0,simulate_network_hang:true}},
 };
 
 async function inject(type) {
   const s = SCENARIOS[type];
-  slog(`[INJECT] ${type} scenario triggered`, 'text-slate-500');
+  slog(`[INJECT] ${type} scenario triggered`, 'text-slate-500 font-medium');
   try {
     const res = await fetch(`${API}${s.url}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(s.body)});
     const d = await res.json();
@@ -769,18 +1229,20 @@ async function storm() {
   slog('BURST: Dispatching 100 concurrent requests...', 'text-amber-600 font-semibold');
   const reqs = Array.from({length:100}).map(() =>
     fetch(`${API}/checkout`, {method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({coupon_code:'FREE100',customer_payload:{shipping_address:'BLR'},warehouse_tier:0})
+      body:JSON.stringify({coupon_code:'FREE100',customer_payload:{shipping_address:'BLR'},warehouse_tier:0,subtotal:500.0})
     }).catch(() => null)
   );
   const results = await Promise.all(reqs);
   const errors = results.filter(r => r && r.status === 500).length;
   slog(`BURST DONE: ${errors}/100 returned HTTP 500`, 'text-red-600 font-semibold');
+  showToast(`Traffic burst complete: ${errors}/100 simulated failures recorded`, 'warning');
 }
 
 // ── Init ─────────────────────────────────────────────────
 checkHealth();
 loadProducts();
 renderCart();
+updateWishlistBadge();
 setInterval(checkHealth, 30000);
 </script>
 </body>

@@ -1,4 +1,4 @@
-﻿"""
+"""
 ShopFlow E-Commerce Microservice — Core API Server
 """
 
@@ -25,12 +25,13 @@ load_dotenv("test_bed/.env")
 log = get_structured_logger("shopflow.api")
 
 
-# ── Request / Response Schemas ────────────────────────────────────────────────
+# Request / Response Schemas 
 
 class CheckoutRequest(BaseModel):
     coupon_code: Optional[str] = None
     customer_payload: Dict[str, Any] = {}
     warehouse_tier: int = 0
+    subtotal: Optional[float] = None
 
 class AuthRequest(BaseModel):
     session_token: Optional[str] = None
@@ -45,7 +46,7 @@ class PaymentRequest(BaseModel):
     simulate_network_hang: bool = False
 
 
-# ── Application Lifespan ──────────────────────────────────────────────────────
+# Application Lifespan 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -57,7 +58,7 @@ app = FastAPI(title="ShopFlow API", version="1.0.0", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="test_bed/app/static"), name="static")
 
 
-# ── Standard Request & Error Logging Middleware ───────────────────────────────
+# Standard Request & Error Logging Middleware 
 
 @app.middleware("http")
 async def logging_middleware(request: Request, call_next):
@@ -78,7 +79,7 @@ async def logging_middleware(request: Request, call_next):
         )
 
 
-# ── Storefront & Business Endpoints ──────────────────────────────────────────
+# Storefront & Business Endpoints 
 
 @app.get("/", response_class=HTMLResponse)
 async def storefront():
@@ -108,8 +109,9 @@ async def get_products():
 
 @app.post("/api/checkout")
 async def checkout(req: CheckoutRequest):
-    discount = evaluate_coupon_discount(req.coupon_code, 500.0) if req.coupon_code else 0.0
-    summary = calculate_order_summary(subtotal=500.0, discount_amount=discount)
+    base_subtotal = req.subtotal if req.subtotal is not None and req.subtotal > 0 else 500.0
+    discount = evaluate_coupon_discount(req.coupon_code, base_subtotal) if req.coupon_code else 0.0
+    summary = calculate_order_summary(subtotal=base_subtotal, discount_amount=discount)
     facility = allocate_warehouse_facility(req.warehouse_tier)
     order = process_order_checkout(summary.total_payable, req.customer_payload)
     return {
